@@ -5,7 +5,7 @@ import QuestionCard from './QuestionCard';
 import { HintSystem } from './HintSystem';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Question } from '@/lib/types';
+import { Question, LLMConfig } from '@/lib/types';
 import { Brain, Cpu, MessageCircle, FastForward, Play, Pause, TrendingUp } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,7 @@ interface LLMvsLLMModeProps {
   onPauseToggle: (isPaused: boolean) => void;
   difficulty: string;
   category: string;
+  llmConfig: LLMConfig;
 }
 
 export function LLMvsLLMMode({ 
@@ -27,7 +28,8 @@ export function LLMvsLLMMode({
   isPaused, 
   onPauseToggle,
   difficulty,
-  category
+  category,
+  llmConfig
 }: LLMvsLLMModeProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isGameActive, setIsGameActive] = useState(true);
@@ -58,16 +60,21 @@ export function LLMvsLLMMode({
     
     setIsLoading(true);
     try {
-      // First, get a question from the LLM
+      // First, get a question from the LLM with the configured questioner
       const questionResponse = await apiRequest<{ question: string, questionCount: number }>('/api/game/llm-question', {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ llmConfig })
       });
       
-      // Then, get the answer to that question
+      // Then, get the answer to that question using the configured answerer
       const answerResponse = await apiRequest<{ question: string, answer: string, questionCount: number }>('/api/game/answer-llm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: questionResponse.question })
+        body: JSON.stringify({ 
+          question: questionResponse.question,
+          llmConfig 
+        })
       });
       
       // Update the state with the new question and answer
@@ -109,7 +116,9 @@ export function LLMvsLLMMode({
         feedback: string, 
         word: string 
       }>('/api/game/llm-guess', {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ llmConfig })
       });
       
       setIsGameActive(false);

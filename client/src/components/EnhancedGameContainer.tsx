@@ -94,6 +94,10 @@ const EnhancedGameContainer: React.FC = () => {
     // For V2 mode
     waitingForLLMQuestion: false,
     waitingForLLMAnswer: false,
+    llmConfig: {
+      questioner: "openai",
+      answerer: "openai"
+    },
     
     // Statistics
     stats: defaultStats
@@ -131,7 +135,8 @@ const EnhancedGameContainer: React.FC = () => {
           difficulty: currentSettings.difficulty,
           category: currentSettings.categories.length > 0 
             ? currentSettings.categories[Math.floor(Math.random() * currentSettings.categories.length)] 
-            : undefined
+            : undefined,
+          llmConfig: currentSettings.llmConfig
         })
       });
     },
@@ -151,7 +156,8 @@ const EnhancedGameContainer: React.FC = () => {
         gameStartTime: Date.now(),
         isPaused: false,
         waitingForLLMQuestion: data.gameMode === "v2",
-        waitingForLLMAnswer: false
+        waitingForLLMAnswer: false,
+        llmConfig: currentSettings.llmConfig
       }));
       setFinalGuessMode(false);
       setThinking(false);
