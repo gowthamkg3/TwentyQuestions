@@ -9,12 +9,20 @@ import {
 export interface GameSession {
   id: string;
   word: string;
+  category: string;
+  difficulty: string;
+  gameMode: string; // "v1" or "v2"
   questionCount: number;
   questions: Array<{
     question: string;
     answer: string;
+    isLLMQuestion?: boolean;
   }>;
   active: boolean;
+  hints?: string[];
+  hintsUsed: number;
+  startTime: number;
+  pauseTime?: number;
 }
 
 // Storage interface
@@ -53,19 +61,38 @@ export class MemStorage implements IStorage {
   
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentId++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      gamesPlayed: 0,
+      gamesWon: 0,
+      avgQuestionCount: 0,
+      bestScore: 20
+    };
     this.users.set(id, user);
     return user;
   }
   
-  async createGameSession(word: string): Promise<GameSession> {
+  async createGameSession(
+    word: string, 
+    category: string = "object", 
+    difficulty: string = "medium", 
+    gameMode: string = "v1",
+    hints: string[] = []
+  ): Promise<GameSession> {
     const id = `game_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     const session: GameSession = {
       id,
       word,
+      category,
+      difficulty,
+      gameMode,
       questionCount: 0,
       questions: [],
-      active: true
+      active: true,
+      hints: hints,
+      hintsUsed: 0,
+      startTime: Date.now()
     };
     
     this.gameSessions.set(id, session);
