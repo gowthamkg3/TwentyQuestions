@@ -1,8 +1,39 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize the Gemini API
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+
+// Initialize the Gemini API with safety settings
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+const generationConfig = {
+  temperature: 0.7,
+  topK: 1,
+  topP: 1,
+  maxOutputTokens: 2048,
+};
+
+const safetySettings = [
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+];
+
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-1.5-pro",
+  generationConfig,
+  safetySettings,
+});
 
 interface WordSelectionOptions {
   category?: string;
@@ -38,7 +69,7 @@ export async function selectRandomWordGemini(options: WordSelectionOptions = {})
 
   try {
     const result = await model.generateContent(prompt);
-    const response = result.response;
+    const response = await result.response;
     const text = response.text();
 
     // Extract JSON from the response
@@ -86,7 +117,7 @@ export async function answerQuestionGemini(word: string, question: string, previ
 
   try {
     const result = await model.generateContent(prompt);
-    const response = result.response;
+    const response = await result.response;
     return response.text().trim();
   } catch (error) {
     console.error("Error answering question with Gemini:", error);
@@ -109,13 +140,11 @@ export async function generateQuestionGemini(word: string, previousQuestions: { 
     Based on the previous questions and answers, generate ONE strategic yes/no question that would help you narrow down what the word is.
     Your question should be concise and clear. Don't make statements or explanations, just ask the question.
     Keep your questions purely yes/no - avoid "how", "why", "what", etc.
-    
-    Remember, you are trying to guess "${word}", so ask a question that would help you determine this.
   `;
 
   try {
     const result = await model.generateContent(prompt);
-    const response = result.response;
+    const response = await result.response;
     return response.text().trim();
   } catch (error) {
     console.error("Error generating question with Gemini:", error);
@@ -144,7 +173,7 @@ export async function simulateHumanAnswerGemini(word: string, question: string, 
 
   try {
     const result = await model.generateContent(prompt);
-    const response = result.response;
+    const response = await result.response;
     return response.text().trim();
   } catch (error) {
     console.error("Error simulating human answer with Gemini:", error);
@@ -169,7 +198,7 @@ export async function makeGuessGemini(previousQuestions: { question: string, ans
 
   try {
     const result = await model.generateContent(prompt);
-    const response = result.response;
+    const response = await result.response;
     return response.text().trim();
   } catch (error) {
     console.error("Error making guess with Gemini:", error);
@@ -202,7 +231,7 @@ export async function checkFinalGuessGemini(word: string, guess: string, previou
 
   try {
     const result = await model.generateContent(prompt);
-    const response = result.response;
+    const response = await result.response;
     
     return {
       correct: isCorrect,
