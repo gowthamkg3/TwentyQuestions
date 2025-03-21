@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from './ui/button';
-import { PauseIcon, PlayIcon, StopIcon, RefreshCwIcon } from 'lucide-react';
+import { PauseIcon, PlayIcon, Square as StopIcon, RefreshCwIcon } from 'lucide-react';
 
 interface ControlPanelProps {
   isPaused: boolean;
