@@ -6,6 +6,11 @@ export interface Question {
 }
 
 export type GameMode = "v1" | "v2"; // v1 = Human asks, LLM answers; v2 = LLM asks, LLM answers
+export type LLMProvider = "openai" | "gemini";
+export type LLMConfig = {
+  questioner: LLMProvider;
+  answerer: LLMProvider;
+};
 export type Difficulty = "easy" | "medium" | "hard";
 export type WordCategory = "animal" | "place" | "object" | "food" | "person" | "concept";
 
@@ -22,6 +27,7 @@ export interface GameSettings {
   difficulty: Difficulty;
   categories: WordCategory[];
   showHints: boolean;
+  llmConfig: LLMConfig;
 }
 
 export interface GameStats {
@@ -56,6 +62,7 @@ export interface GameState {
   waitingForLLMQuestion: boolean;
   waitingForLLMAnswer: boolean;
   currentLLMQuestion?: string;
+  llmConfig: LLMConfig;
   
   // Statistics
   stats: GameStats;

@@ -9,6 +9,21 @@ import {
   simulateHumanAnswer,
   makeGuess
 } from "./openai";
+import {
+  selectRandomWordGemini,
+  answerQuestionGemini,
+  checkFinalGuessGemini,
+  generateQuestionGemini,
+  simulateHumanAnswerGemini,
+  makeGuessGemini
+} from "./gemini";
+
+// Types for LLM configuration
+type LLMProvider = "openai" | "gemini";
+interface LLMConfig {
+  questioner: LLMProvider;
+  answerer: LLMProvider;
+}
 
 // Keep the current active game session id
 let currentGameSessionId: string | null = null;
@@ -30,13 +45,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start a new game
   app.post("/api/game/start", async (req, res) => {
     try {
-      const { gameMode = "v1", difficulty = "medium", category } = req.body;
-      
-      // Get a random word from OpenAI with metadata
-      const wordData = await selectRandomWord({
+      const { 
+        gameMode = "v1", 
+        difficulty = "medium", 
         category,
-        difficulty
-      });
+        llmConfig = { questioner: "openai", answerer: "openai" } 
+      } = req.body;
+      
+      // Choose which API to use for word selection based on answerer config
+      let wordData;
+      if (llmConfig.answerer === "gemini") {
+        wordData = await selectRandomWordGemini({
+          category,
+          difficulty
+        });
+      } else {
+        wordData = await selectRandomWord({
+          category,
+          difficulty
+        });
+      }
       
       // Create a new game session with additional metadata
       const session = await storage.createGameSession(
@@ -44,7 +72,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         wordData.category,
         wordData.difficulty,
         gameMode,
-        wordData.hints
+        wordData.hints,
+        llmConfig
       );
       currentGameSessionId = session.id;
       
