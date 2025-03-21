@@ -1,0 +1,145 @@
+Below is a comprehensive, developer-ready specification for both V1 (User vs LLM) and V2 (LLM vs LLM) of the twenty questions game. This document includes all relevant requirements, architecture choices, data handling details, error handling strategies, and a testing plan, structured to enable a developer to immediately begin implementation.
+
+Twenty Questions Game: V1 and V2 Specification
+1. Overview
+This specification outlines the development of a web-based twenty questions game with two versions:
+
+V1: User vs LLM – A user plays against a large language model (LLM), asking yes/no questions to guess a word selected by the LLM.
+V2: LLM vs LLM – Two LLMs play against each other, with one selecting the word and the other asking questions, fully automated.
+Both versions share a modular architecture and UI design, ensuring consistency and ease of expansion. The game is designed to be responsive, user-friendly, and robust, with logging and error handling built in.
+
+2. Functional Requirements
+V1: User vs LLM
+
+Gameplay:
+The LLM selects a word from a predefined list of single-word physical entities (e.g., names, places, animals, things).
+The user asks up to 20 yes/no questions to guess the word.
+The LLM responds with "Yes," "No," or a win/loss message:
+If the user guesses the word correctly: "Yes, it’s [word]! You win!"
+If the user reaches 20 questions without guessing: "No, and you’ve used all 20 questions. The word was [word]. You lose."
+The game ends when the user guesses correctly or exhausts 20 questions.
+UI:
+Split-screen layout:
+Left 20%: Collapsible/expandable section showing vertically stacked cards with question-response pairs.
+Middle 40%: Displays the LLM’s latest response (large font) and status message (small font).
+Right 40%: Contains a text input field for the user to type questions.
+On mobile, the layout stacks vertically with the card section at the top (horizontally scrollable).
+When the card section is collapsed, the middle and right sections resize to 50%/50% of the screen width.
+V2: LLM vs LLM
+
+Gameplay:
+Two LLMs play against each other:
+Word-Picking LLM: Selects the word and answers questions.
+Questioning LLM: Asks yes/no questions to guess the word.
+Roles are configurable via a settings menu, and the two LLMs must be different (e.g., OpenAI and Gemini).
+The game runs automatically, with a 2-3 second delay between interactions for readability.
+The questioning LLM generates questions based on the conversation history.
+The word-picking LLM responds with "Yes," "No," or a win/loss message, similar to V1.
+If the questioning LLM asks an invalid question (not yes/no), the word-picking LLM responds with "Please ask a yes/no question," and the questioning LLM is prompted to try again.
+UI:
+Similar to V1, with adjustments for automated play:
+Middle 40%: Shows the latest question from the questioning LLM.
+Right 40%: Shows the latest response from the word-picking LLM and status messages.
+A control panel with Pause, Stop, and New Game buttons allows manual intervention.
+3. Non-Functional Requirements
+Performance: The UI must be responsive, with minimal latency in displaying updates.
+Scalability: The architecture must support adding new LLMs or game modes with minimal changes.
+Reliability: Error handling must manage LLM API failures and invalid questions gracefully.
+Security: Protect LLM API keys and sensitive data.
+Accessibility: Ensure the UI is accessible to users with disabilities (e.g., keyboard navigation, screen reader support).
+4. Architecture
+High-Level Architecture:
+Frontend: Built with React or Vue.js for a dynamic, responsive UI.
+Backend: Built with Node.js (Express) or Python (Flask/Django) to manage game logic, state, and LLM interactions.
+LLM Clients: Modular interfaces for each supported LLM (e.g., OpenAI, Gemini), allowing easy addition of new models.
+Player Abstraction:
+A "Player" interface with methods like ask_question() and respond_to_question().
+Concrete implementations:
+UserPlayer: For V1, handles user input via the text field.
+LLMPlayer: For both V1 and V2, handles LLM interactions via API calls.
+Game State Management:
+The backend maintains the game state, including the selected word, question count, and conversation history.
+State is stored in memory for active games and logged for review.
+Mode Toggle:
+A configuration flag determines the game mode (User vs LLM or LLM vs LLM), controlling whether the questioning player is a user or an LLM.
+5. Data Handling
+Word List:
+A predefined list of single-word physical entities (e.g., 100 names, 100 places, 100 animals, 100 things).
+Stored in a JSON file or database, randomly selected by the word-picking player.
+Conversation History:
+Stored in the game state and updated after each question-response pair.
+Used to generate prompts for the questioning LLM in V2.
+Logging:
+All interactions are logged with timestamps and game IDs, including:
+Game start (selected word).
+Each question and response.
+Errors (e.g., API failures).
+Game end (win/loss).
+Logs are saved to a file or database using a framework like Winston (Node.js) or the logging module (Python).
+6. Error Handling
+LLM API Failures:
+If an LLM API call fails (e.g., timeout, connection error), the game pauses automatically.
+The UI displays a notification: "Error: LLM API failed. Game paused. Please check the connection or try again later."
+The user can choose to Resume (retry the failed action) or Stop the game.
+Invalid Questions (V2):
+If the questioning LLM generates an invalid question (e.g., not a yes/no question), the word-picking LLM responds with "Please ask a yes/no question."
+The questioning LLM is prompted to generate a new question, and the invalid question does not count toward the 20-question limit.
+UI Errors:
+Handle UI errors (e.g., input validation) with clear, user-friendly messages.
+7. UI Layout Details
+Desktop Layout
+
+Left 20% (Card History):
+Collapsible/expandable section showing vertically stacked cards.
+Each card contains:
+Your Question (or questioning LLM’s question).
+LLM’s Response (or word-picking LLM’s response).
+Question Number (e.g., "Question 1/20").
+Toggle button (e.g., hamburger icon) to collapse/expand.
+Middle 40% (LLM Section):
+Displays the latest response (large font, e.g., 24px) and status message (small font, e.g., 14px).
+Right 40% (User/Questioning LLM Section):
+In V1: Text input field for user questions.
+In V2: Displays the latest question from the questioning LLM.
+When the card section is collapsed, the middle and right sections resize to 50%/50%.
+Mobile Layout
+
+Top 20% (Card History):
+Horizontally scrollable cards showing question-response pairs.
+Middle (LLM Section):
+Latest response and status.
+Bottom (User/Questioning LLM Section):
+Input field (V1) or latest question (V2).
+8. Additional Features
+Control Panel (V2):
+Pause: Temporarily halts the game, with a Resume option.
+Stop: Ends the game and reveals the word.
+New Game: Starts a new game with the same or new LLM configurations.
+Status Messages:
+In V2, status messages like "Questioning LLM is thinking..." or "Waiting for response..." keep the user informed.
+Delays:
+In V2, a 2-3 second delay between interactions ensures the conversation is readable.
+9. Testing Plan
+Unit Tests:
+Test individual components (e.g., LLM clients, player abstractions).
+Integration Tests:
+Test end-to-end gameplay for both V1 and V2, including win/loss conditions.
+UI Tests:
+Test layout responsiveness on desktop and mobile devices.
+Verify collapse/expand functionality and control buttons.
+Error Handling Tests:
+Simulate LLM API failures and invalid questions to ensure proper handling.
+Performance Tests:
+Ensure minimal latency in UI updates and LLM responses.
+10. Assumptions and Clarifications
+LLM Role Restrictions: In V2, the word-picking and questioning LLMs must be different.
+Invalid Questions: Handled by the word-picking LLM with a prompt to rephrase.
+Manual Controls: Pause, stop, and new game buttons are available in V2.
+Error Handling: The game pauses and notifies the user on errors, with options to resume or stop.
+11. Security and Accessibility
+Security:
+Protect LLM API keys using environment variables or a secrets manager.
+Ensure no sensitive data is exposed in logs or the UI.
+Accessibility:
+Ensure the UI supports keyboard navigation and screen readers.
+Use high-contrast colors and appropriate font sizes.
