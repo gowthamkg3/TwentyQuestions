@@ -75,6 +75,25 @@ const GameContainer: React.FC = () => {
         
         const newCount = prev.questionCount + 1;
         
+        // Check if the user correctly guessed the answer
+        const questionLower = data.question.toLowerCase();
+        const answerLower = data.answer.toLowerCase();
+        const isCorrectGuess = (
+          (questionLower.includes("is it a ") || questionLower.includes("is it an ") || questionLower.startsWith("is it ")) && 
+          answerLower.startsWith("yes") && 
+          answerLower.includes("that's exactly what i was thinking of")
+        );
+        
+        if (isCorrectGuess) {
+          return {
+            ...prev,
+            questionCount: newCount,
+            questions: newQuestions,
+            isGameActive: false,
+            gameResult: "win"
+          };
+        }
+        
         // Check if we should enter final guess mode
         if (newCount === 19) {
           setFinalGuessMode(true);
@@ -231,7 +250,8 @@ const GameContainer: React.FC = () => {
             <Button
               onClick={startNewGame}
               disabled={startGameMutation.isPending}
-              className="bg-secondary hover:bg-secondary/80 text-white px-4 py-2 rounded-lg font-poppins font-medium shadow-md transition duration-300"
+              variant="secondary"
+              className="px-4 py-2 rounded-lg font-poppins font-medium shadow-md transition duration-300"
             >
               New Game
             </Button>
@@ -312,10 +332,10 @@ const GameContainer: React.FC = () => {
                 )}
                 
                 <div className="text-center">
-                  <div className="bg-primary bg-opacity-10 px-8 py-4 rounded-2xl inline-block">
-                    <p className="font-poppins font-medium">
-                      <span className="text-3xl text-primary font-bold">{gameState.questionCount}</span>
-                      <span className="text-lg">/ 20 Questions</span>
+                  <div className="bg-gray-100 px-8 py-4 rounded-2xl inline-block">
+                    <p className="font-poppins font-medium flex items-baseline gap-1">
+                      <span className="text-3xl text-secondary font-bold">{gameState.questionCount}</span>
+                      <span className="text-lg text-gray-700">/ 20 Questions</span>
                     </p>
                   </div>
                 </div>
@@ -450,10 +470,10 @@ const GameContainer: React.FC = () => {
               )}
               
               <div className="text-center">
-                <div className="bg-primary bg-opacity-10 px-6 py-3 rounded-xl inline-block">
-                  <p className="font-poppins font-medium">
-                    <span className="text-2xl text-primary font-bold">{gameState.questionCount}</span>
-                    <span className="text-sm">/ 20 Questions</span>
+                <div className="bg-gray-100 px-6 py-3 rounded-xl inline-block">
+                  <p className="font-poppins font-medium flex items-baseline gap-1">
+                    <span className="text-2xl text-secondary font-bold">{gameState.questionCount}</span>
+                    <span className="text-sm text-gray-700">/ 20 Questions</span>
                   </p>
                 </div>
               </div>
