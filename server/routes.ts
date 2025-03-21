@@ -292,6 +292,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // V2 Mode: LLM makes a final guess
   app.post("/api/game/llm-guess", async (req, res) => {
     try {
+      const { llmConfig } = req.body;
+      
       // Validate game session
       if (!currentGameSessionId) {
         return res.status(400).json({ error: "No active game session" });
@@ -308,9 +310,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "This endpoint is only available in V2 mode" });
       }
       
+      // Use the client-provided config if valid, otherwise fall back to session config
+      const activeConfig = (llmConfig && llmConfig.questioner && llmConfig.answerer) ? llmConfig : session.llmConfig;
+      
       // Get LLM to make a guess using the appropriate API
       let guess;
-      if (session.llmConfig?.questioner === "gemini") {
+      if (activeConfig?.questioner === "gemini") {
         guess = await makeGuessGemini(session.questions);
       } else {
         guess = await makeGuess(session.questions);
@@ -318,7 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if the guess is correct using the appropriate API
       let result;
-      if (session.llmConfig?.answerer === "gemini") {
+      if (activeConfig?.answerer === "gemini") {
         result = await checkFinalGuessGemini(session.word, guess, session.questions);
       } else {
         result = await checkFinalGuess(session.word, guess, session.questions);

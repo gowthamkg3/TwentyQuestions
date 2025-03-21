@@ -192,6 +192,12 @@ export function LLMvsLLMMode({
           <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">
             {questionCount}/20 Questions
           </Badge>
+          <Badge variant="outline" className="bg-purple-50 text-purple-800 border-purple-200">
+            Questioner: {llmConfig.questioner === "openai" ? "OpenAI" : "Gemini"}
+          </Badge>
+          <Badge variant="outline" className="bg-teal-50 text-teal-800 border-teal-200">
+            Answerer: {llmConfig.answerer === "openai" ? "OpenAI" : "Gemini"}
+          </Badge>
         </div>
       </div>
       
@@ -290,7 +296,8 @@ export function LLMvsLLMMode({
               <QuestionCard 
                 key={question.id} 
                 question={question} 
-                isPositive={question.answer.toLowerCase().startsWith('yes')} 
+                isPositive={question.answer.toLowerCase().startsWith('yes')}
+                llmConfig={llmConfig}
               />
             ))}
             
