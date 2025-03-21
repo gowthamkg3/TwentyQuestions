@@ -191,6 +191,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // V2 Mode: Get LLM to ask a question
   app.post("/api/game/llm-question", async (req, res) => {
     try {
+      // Check for client-provided LLM config
+      const { llmConfig } = req.body;
+      
       // Validate game session
       if (!currentGameSessionId) {
         return res.status(400).json({ error: "No active game session" });
@@ -212,9 +215,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Maximum questions reached" });
       }
       
+      // Use the client-provided config if valid, otherwise fall back to session config
+      const activeConfig = (llmConfig && llmConfig.questioner) ? llmConfig : session.llmConfig;
+      
       // Get LLM to generate a question using the appropriate API
       let question;
-      if (session.llmConfig?.questioner === "gemini") {
+      if (activeConfig?.questioner === "gemini") {
         question = await generateQuestionGemini(session.word, session.questions);
       } else {
         question = await generateQuestion(session.word, session.questions);
@@ -231,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // V2 Mode: Answer LLM's question
   app.post("/api/game/answer-llm", async (req, res) => {
     try {
-      const { question } = req.body;
+      const { question, llmConfig } = req.body;
       
       // Validate question
       if (!question || typeof question !== "string") {
@@ -259,9 +265,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Maximum questions reached" });
       }
       
+      // Use the client-provided config if valid, otherwise fall back to session config
+      const activeConfig = (llmConfig && llmConfig.answerer) ? llmConfig : session.llmConfig;
+      
       // Get LLM to simulate user's answer using the appropriate API
       let answer;
-      if (session.llmConfig?.answerer === "gemini") {
+      if (activeConfig?.answerer === "gemini") {
         answer = await simulateHumanAnswerGemini(session.word, question, session.questions);
       } else {
         answer = await simulateHumanAnswer(session.word, question, session.questions);

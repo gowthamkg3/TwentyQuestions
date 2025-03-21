@@ -922,6 +922,7 @@ const EnhancedGameContainer: React.FC = () => {
             onPauseToggle={handlePauseToggle}
             difficulty={gameState.difficulty}
             category={gameState.selectedCategory || "unknown"}
+            llmConfig={gameState.llmConfig}
           />
         )}
       </main>
