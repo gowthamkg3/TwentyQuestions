@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { GameState, Question } from "@/lib/types";
+import { GameState, Question, GameMode, Difficulty } from "@/lib/types";
 import QuestionCard from "./QuestionCard";
 import GameEndModal from "./GameEndModal";
 import { Menu, ChevronRight, ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
@@ -25,9 +25,21 @@ const GameContainer: React.FC = () => {
     isGameActive: false,
     questions: [],
     isHistoryCollapsed: false,
-    controlPanelOpen: false, // Added state for control panel
-    statusMessage: "", // Added state for status messages
-    delay: 0, //Added state for delay
+    showControlPanel: false, // Control panel visibility
+    statusMessage: "", // Status messages
+    hintsUsed: 0, // Initialize hints used
+    gameMode: "v1", // Default to version 1 (human asks questions)
+    difficulty: "medium", // Default difficulty
+    isPaused: false, // Game pause state
+    waitingForLLMQuestion: false, // For V2 mode
+    waitingForLLMAnswer: false, // For V2 mode
+    stats: {
+      gamesPlayed: 0,
+      gamesWon: 0,
+      averageQuestions: 0,
+      bestScore: 0,
+      completionTimes: []
+    }
   });
 
   const [thinking, setThinking] = useState(false);
@@ -36,8 +48,14 @@ const GameContainer: React.FC = () => {
   // Start a new game
   const startGameMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/game/start", {});
-      return response.json();
+      return await apiRequest<{
+        success: boolean;
+        word: string;
+        category?: string;
+        difficulty?: string;
+        gameMode?: string;
+        hints?: string[];
+      }>("/api/game/start", { method: "POST" });
     },
     onSuccess: (data) => {
       setGameState({
@@ -46,9 +64,22 @@ const GameContainer: React.FC = () => {
         questions: [],
         isHistoryCollapsed: false,
         selectedWord: data.word, // This will be hidden from the client in production
-        controlPanelOpen: false, // Initialize control panel state
-        statusMessage: "", // Initialize status message state
-        delay: 0, // Initialize delay
+        showControlPanel: false,
+        statusMessage: "Game started! Ask a yes/no question.",
+        hintsUsed: 0,
+        gameMode: data.gameMode as GameMode || "v1",
+        difficulty: data.difficulty as Difficulty || "medium",
+        isPaused: false,
+        waitingForLLMQuestion: false,
+        waitingForLLMAnswer: false,
+        stats: {
+          gamesPlayed: 0,
+          gamesWon: 0,
+          averageQuestions: 0,
+          bestScore: 0,
+          completionTimes: []
+        },
+        hints: data.hints
       });
       setThinking(false);
       setFinalGuessMode(false);
@@ -65,8 +96,11 @@ const GameContainer: React.FC = () => {
   // Ask a question
   const askQuestionMutation = useMutation({
     mutationFn: async (question: string) => {
-      const response = await apiRequest("POST", "/api/game/ask", { question });
-      return response.json();
+      const response = await apiRequest<{
+        question: string;
+        answer: string;
+      }>("POST", "/api/game/ask", { question });
+      return response;
     },
     onSuccess: (data) => {
       setThinking(false);
