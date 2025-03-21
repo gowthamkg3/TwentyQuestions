@@ -406,27 +406,27 @@ const GameContainer: React.FC = () => {
 
         {/* Mobile Layout */}
         {isMobile && (
-          <div className="md:hidden flex flex-col h-[calc(100vh-140px)] gap-4">
+          <div className="md:hidden flex flex-col h-[calc(100vh-80px)] gap-3">
             {/* Top - Question History */}
-            <div className="bg-white rounded-2xl shadow-md">
-              <div className="flex justify-between items-center p-4 border-b">
-                <h2 className="font-poppins font-semibold text-lg">Question History</h2>
+            <div className="bg-white rounded-xl shadow-sm">
+              <div className="flex justify-between items-center px-4 py-3 border-b">
+                <h2 className="font-poppins font-semibold text-base">Question History</h2>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="sm"
                   onClick={toggleHistorySidebar}
                   className="text-primary hover:text-primary/70 transition"
                 >
-                  {gameState.isHistoryCollapsed ? <ChevronDown className="h-6 w-6" /> : <ChevronUp className="h-6 w-6" />}
+                  {gameState.isHistoryCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
                 </Button>
               </div>
               {!gameState.isHistoryCollapsed && (
-                <div className="overflow-x-auto custom-scrollbar p-4 flex space-x-3">
+                <div className="overflow-x-auto custom-scrollbar p-3 flex space-x-2">
                   {gameState.questions.map((question) => (
-                    <div key={question.id} className="flex-shrink-0 w-60 bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <div key={question.id} className="flex-shrink-0 w-[calc(100vw-120px)] bg-gray-50 rounded-lg p-2.5 border border-gray-100">
                       <div className="font-open-sans text-sm">
-                        <p className="font-semibold text-gray-800">Q{question.id}: {question.text}</p>
-                        <p className={`mt-1 font-medium ${question.answer.toLowerCase().startsWith('yes') ? "text-green-600" : "text-red-600"}`}>
+                        <p className="font-medium text-gray-800">Q{question.id}: {question.text}</p>
+                        <p className={`mt-0.5 font-medium ${question.answer.toLowerCase().startsWith('yes') ? "text-green-600" : "text-red-600"}`}>
                           {question.answer}
                         </p>
                       </div>
@@ -480,14 +480,14 @@ const GameContainer: React.FC = () => {
             </div>
 
             {/* Bottom - User Question Input */}
-            <div className="bg-white rounded-2xl shadow-md p-6">
-              <h2 className="text-xl font-poppins font-semibold mb-4 text-center">
+            <div className="bg-white rounded-xl shadow-sm p-4">
+              <h2 className="text-lg font-poppins font-semibold mb-3 text-center">
                 {finalGuessMode ? "Make Your Final Guess" : "Ask a Yes/No Question"}
               </h2>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <label htmlFor="questionInputMobile" className="block text-textColor text-sm font-medium mb-2">
+                  <label htmlFor="questionInputMobile" className="block text-textColor text-sm font-medium mb-1.5">
                     {finalGuessMode ? "Your Guess:" : "Your Question:"}
                   </label>
                   <Input
