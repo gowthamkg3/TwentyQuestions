@@ -1,7 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { selectRandomWord, answerQuestion, checkFinalGuess } from "./openai";
+import { 
+  selectRandomWord, 
+  answerQuestion, 
+  checkFinalGuess, 
+  generateQuestion,
+  simulateHumanAnswer,
+  makeGuess
+} from "./openai";
 
 // Keep the current active game session id
 let currentGameSessionId: string | null = null;
@@ -23,20 +30,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start a new game
   app.post("/api/game/start", async (req, res) => {
     try {
-      // Get a random word from OpenAI
-      const word = await selectRandomWord();
+      const { gameMode = "v1", difficulty = "medium", category } = req.body;
       
-      // Create a new game session
-      const session = await storage.createGameSession(word);
+      // Get a random word from OpenAI with metadata
+      const wordData = await selectRandomWord({
+        category,
+        difficulty
+      });
+      
+      // Create a new game session with additional metadata
+      const session = await storage.createGameSession(
+        wordData.word,
+        wordData.category,
+        wordData.difficulty,
+        gameMode,
+        wordData.hints
+      );
       currentGameSessionId = session.id;
       
-      console.log(`New game started with word: ${word}`);
+      console.log(`New game started with word: ${wordData.word}, category: ${wordData.category}, difficulty: ${wordData.difficulty}`);
       
       // Return success (in production, we would NOT return the actual word to the client)
       if (process.env.NODE_ENV === "production") {
-        res.json({ success: true });
+        res.json({ 
+          success: true,
+          gameMode,
+          category: wordData.category,
+          difficulty: wordData.difficulty
+        });
       } else {
-        res.json({ success: true, word });
+        res.json({ 
+          success: true, 
+          word: wordData.word,
+          gameMode,
+          category: wordData.category,
+          difficulty: wordData.difficulty,
+          hints: wordData.hints
+        });
       }
     } catch (error) {
       console.error("Error starting game:", error);
@@ -90,6 +120,169 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get a hint
+  app.post("/api/game/hint", async (req, res) => {
+    try {
+      // Validate game session
+      if (!currentGameSessionId) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Get the game session
+      const session = await storage.getGameSession(currentGameSessionId);
+      if (!session || !session.active) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Check if we have hints available
+      if (!session.hints || session.hints.length === 0) {
+        return res.status(400).json({ error: "No hints available for this word" });
+      }
+      
+      // Ensure hintsUsed isn't greater than available hints
+      if (session.hintsUsed >= session.hints.length) {
+        return res.status(400).json({ error: "No more hints available" });
+      }
+      
+      // Get the next hint
+      const hint = session.hints[session.hintsUsed];
+      
+      // Update the session
+      session.hintsUsed += 1;
+      await storage.updateGameSession(session);
+      
+      // Return the hint
+      res.json({ hint, hintsUsed: session.hintsUsed, totalHints: session.hints.length });
+    } catch (error) {
+      console.error("Error getting hint:", error);
+      res.status(500).json({ error: "Failed to get hint" });
+    }
+  });
+  
+  // V2 Mode: Get LLM to ask a question
+  app.post("/api/game/llm-question", async (req, res) => {
+    try {
+      // Validate game session
+      if (!currentGameSessionId) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Get the game session
+      const session = await storage.getGameSession(currentGameSessionId);
+      if (!session || !session.active) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Check game mode
+      if (session.gameMode !== "v2") {
+        return res.status(400).json({ error: "This endpoint is only available in V2 mode" });
+      }
+      
+      // Check if maximum questions reached
+      if (session.questionCount >= 20) {
+        return res.status(400).json({ error: "Maximum questions reached" });
+      }
+      
+      // Get LLM to generate a question
+      const question = await generateQuestion(session.word, session.questions);
+      
+      // Return the question
+      res.json({ question, questionCount: session.questionCount });
+    } catch (error) {
+      console.error("Error generating LLM question:", error);
+      res.status(500).json({ error: "Failed to generate question" });
+    }
+  });
+  
+  // V2 Mode: Answer LLM's question
+  app.post("/api/game/answer-llm", async (req, res) => {
+    try {
+      const { question } = req.body;
+      
+      // Validate question
+      if (!question || typeof question !== "string") {
+        return res.status(400).json({ error: "Question is required" });
+      }
+      
+      // Validate game session
+      if (!currentGameSessionId) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Get the game session
+      const session = await storage.getGameSession(currentGameSessionId);
+      if (!session || !session.active) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Check game mode
+      if (session.gameMode !== "v2") {
+        return res.status(400).json({ error: "This endpoint is only available in V2 mode" });
+      }
+      
+      // Check if maximum questions reached
+      if (session.questionCount >= 20) {
+        return res.status(400).json({ error: "Maximum questions reached" });
+      }
+      
+      // Get LLM to simulate user's answer
+      const answer = await simulateHumanAnswer(session.word, question, session.questions);
+      
+      // Update the session
+      session.questionCount += 1;
+      session.questions.push({ question, answer, isLLMQuestion: true });
+      await storage.updateGameSession(session);
+      
+      // Return the answer
+      res.json({ question, answer, questionCount: session.questionCount });
+    } catch (error) {
+      console.error("Error processing LLM question:", error);
+      res.status(500).json({ error: "Failed to process question" });
+    }
+  });
+  
+  // V2 Mode: LLM makes a final guess
+  app.post("/api/game/llm-guess", async (req, res) => {
+    try {
+      // Validate game session
+      if (!currentGameSessionId) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Get the game session
+      const session = await storage.getGameSession(currentGameSessionId);
+      if (!session || !session.active) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Check game mode
+      if (session.gameMode !== "v2") {
+        return res.status(400).json({ error: "This endpoint is only available in V2 mode" });
+      }
+      
+      // Get LLM to make a guess
+      const guess = await makeGuess(session.questions);
+      
+      // Check if the guess is correct
+      const result = await checkFinalGuess(session.word, guess, session.questions);
+      
+      // End the game session
+      await storage.endGameSession(session.id, result.correct);
+      currentGameSessionId = null;
+      
+      // Return the result
+      res.json({
+        guess,
+        correct: result.correct,
+        feedback: result.feedback,
+        word: session.word
+      });
+    } catch (error) {
+      console.error("Error processing LLM guess:", error);
+      res.status(500).json({ error: "Failed to process guess" });
+    }
+  });
+  
   // Make final guess
   app.post("/api/game/guess", async (req, res) => {
     try {
@@ -131,6 +324,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error processing guess:", error);
       res.status(500).json({ error: "Failed to process guess" });
+    }
+  });
+
+  // Get statistics
+  app.get("/api/stats", async (req, res) => {
+    try {
+      // For a full implementation, we would track comprehensive game statistics in a database
+      // For now, we'll just return the current session stats
+      const session = currentGameSessionId ? await storage.getGameSession(currentGameSessionId) : null;
+      
+      // Calculate game time if session is active
+      let gameTimeInSeconds = 0;
+      if (session?.startTime) {
+        const currentTime = Date.now();
+        gameTimeInSeconds = Math.floor((currentTime - session.startTime) / 1000);
+      }
+      
+      res.json({
+        currentGame: session ? {
+          questionCount: session.questionCount,
+          category: session.category,
+          difficulty: session.difficulty,
+          gameMode: session.gameMode,
+          hintsUsed: session.hintsUsed,
+          gameTimeInSeconds,
+          active: session.active
+        } : null,
+        statistics: {
+          gamesPlayed: 10, // Mock data for now - would be replaced with actual DB query
+          gamesWon: 6,
+          averageQuestions: 14,
+          bestScore: 8,
+          byCategory: {
+            animal: { played: 3, won: 2 },
+            place: { played: 2, won: 1 },
+            object: { played: 4, won: 2 },
+            food: { played: 1, won: 1 }
+          },
+          byDifficulty: {
+            easy: { played: 3, won: 3 },
+            medium: { played: 5, won: 2 },
+            hard: { played: 2, won: 1 }
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error getting statistics:", error);
+      res.status(500).json({ error: "Failed to get statistics" });
+    }
+  });
+  
+  // Pause or resume game
+  app.post("/api/game/pause", async (req, res) => {
+    try {
+      const { pause = true } = req.body;
+      
+      // Validate game session
+      if (!currentGameSessionId) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Get the game session
+      const session = await storage.getGameSession(currentGameSessionId);
+      if (!session || !session.active) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Update pause state
+      if (pause) {
+        session.pauseTime = Date.now();
+      } else {
+        // If resuming, adjust the start time to account for the pause duration
+        if (session.pauseTime) {
+          const pauseDuration = Date.now() - session.pauseTime;
+          session.startTime += pauseDuration;
+          session.pauseTime = undefined;
+        }
+      }
+      
+      await storage.updateGameSession(session);
+      
+      res.json({ success: true, paused: pause });
+    } catch (error) {
+      console.error("Error pausing/resuming game:", error);
+      res.status(500).json({ error: "Failed to pause/resume game" });
     }
   });
 
