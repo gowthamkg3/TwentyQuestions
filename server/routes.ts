@@ -212,8 +212,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Maximum questions reached" });
       }
       
-      // Get LLM to generate a question
-      const question = await generateQuestion(session.word, session.questions);
+      // Get LLM to generate a question using the appropriate API
+      let question;
+      if (session.llmConfig?.questioner === "gemini") {
+        question = await generateQuestionGemini(session.word, session.questions);
+      } else {
+        question = await generateQuestion(session.word, session.questions);
+      }
       
       // Return the question
       res.json({ question, questionCount: session.questionCount });
@@ -254,8 +259,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Maximum questions reached" });
       }
       
-      // Get LLM to simulate user's answer
-      const answer = await simulateHumanAnswer(session.word, question, session.questions);
+      // Get LLM to simulate user's answer using the appropriate API
+      let answer;
+      if (session.llmConfig?.answerer === "gemini") {
+        answer = await simulateHumanAnswerGemini(session.word, question, session.questions);
+      } else {
+        answer = await simulateHumanAnswer(session.word, question, session.questions);
+      }
       
       // Update the session
       session.questionCount += 1;
@@ -289,11 +299,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "This endpoint is only available in V2 mode" });
       }
       
-      // Get LLM to make a guess
-      const guess = await makeGuess(session.questions);
+      // Get LLM to make a guess using the appropriate API
+      let guess;
+      if (session.llmConfig?.questioner === "gemini") {
+        guess = await makeGuessGemini(session.questions);
+      } else {
+        guess = await makeGuess(session.questions);
+      }
       
-      // Check if the guess is correct
-      const result = await checkFinalGuess(session.word, guess, session.questions);
+      // Check if the guess is correct using the appropriate API
+      let result;
+      if (session.llmConfig?.answerer === "gemini") {
+        result = await checkFinalGuessGemini(session.word, guess, session.questions);
+      } else {
+        result = await checkFinalGuess(session.word, guess, session.questions);
+      }
       
       // End the game session
       await storage.endGameSession(session.id, result.correct);
@@ -333,12 +353,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No active game session" });
       }
       
-      // Check the guess using OpenAI
-      const result = await checkFinalGuess(
-        session.word, 
-        guess, 
-        session.questions
-      );
+      // Check the guess using the appropriate API
+      let result;
+      if (session.llmConfig?.answerer === "gemini") {
+        result = await checkFinalGuessGemini(session.word, guess, session.questions);
+      } else {
+        result = await checkFinalGuess(session.word, guess, session.questions);
+      }
       
       // End the game session
       await storage.endGameSession(session.id, result.correct);

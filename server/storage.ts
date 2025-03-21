@@ -5,6 +5,13 @@ import {
   GameQuestion, InsertGameQuestion
 } from "@shared/schema";
 
+// LLM Provider types
+type LLMProvider = "openai" | "gemini";
+interface LLMConfig {
+  questioner: LLMProvider;
+  answerer: LLMProvider;
+}
+
 // Game session interface
 export interface GameSession {
   id: string;
@@ -23,6 +30,7 @@ export interface GameSession {
   hintsUsed: number;
   startTime: number;
   pauseTime?: number;
+  llmConfig?: LLMConfig;
 }
 
 // Storage interface
@@ -37,7 +45,8 @@ export interface IStorage {
     category?: string, 
     difficulty?: string, 
     gameMode?: string,
-    hints?: string[]
+    hints?: string[],
+    llmConfig?: LLMConfig
   ): Promise<GameSession>;
   getGameSession(id: string): Promise<GameSession | undefined>;
   updateGameSession(session: GameSession): Promise<void>;
@@ -84,7 +93,8 @@ export class MemStorage implements IStorage {
     category: string = "object", 
     difficulty: string = "medium", 
     gameMode: string = "v1",
-    hints: string[] = []
+    hints: string[] = [],
+    llmConfig: LLMConfig = { questioner: "openai", answerer: "openai" }
   ): Promise<GameSession> {
     const id = `game_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     const session: GameSession = {
@@ -98,7 +108,8 @@ export class MemStorage implements IStorage {
       active: true,
       hints: hints,
       hintsUsed: 0,
-      startTime: Date.now()
+      startTime: Date.now(),
+      llmConfig
     };
     
     this.gameSessions.set(id, session);
