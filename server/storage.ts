@@ -32,7 +32,13 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   
   // Game related methods
-  createGameSession(word: string): Promise<GameSession>;
+  createGameSession(
+    word: string, 
+    category?: string, 
+    difficulty?: string, 
+    gameMode?: string,
+    hints?: string[]
+  ): Promise<GameSession>;
   getGameSession(id: string): Promise<GameSession | undefined>;
   updateGameSession(session: GameSession): Promise<void>;
   endGameSession(id: string, win: boolean): Promise<void>;
