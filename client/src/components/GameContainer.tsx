@@ -320,7 +320,7 @@ const GameContainer: React.FC = () => {
                   </div>
                 ) : (
                   <div className="text-center mb-8 response-animation">
-                    <h3 className={`text-4xl font-poppins font-bold mb-2 ${latestQuestion ? (isPositiveResponse ? 'text-secondary' : 'text-accent') : 'text-primary'}`}>
+                    <h3 className={`text-4xl font-poppins font-bold mb-2 ${latestQuestion ? (isPositiveResponse ? 'text-green-600' : 'text-red-600') : 'text-indigo-700'}`}>
                       {latestQuestion ? (isPositiveResponse ? 'Yes' : 'No') : "Let's Play!"}
                     </h3>
                     <p className="text-lg text-textColor font-open-sans">
@@ -334,7 +334,7 @@ const GameContainer: React.FC = () => {
                 <div className="text-center">
                   <div className="bg-gray-100 px-8 py-4 rounded-2xl inline-block">
                     <p className="font-poppins font-medium flex items-baseline gap-1">
-                      <span className="text-3xl text-secondary font-bold">{gameState.questionCount}</span>
+                      <span className="text-3xl text-indigo-600 font-bold">{gameState.questionCount}</span>
                       <span className="text-lg text-gray-700">/ 20 Questions</span>
                     </p>
                   </div>
@@ -425,8 +425,8 @@ const GameContainer: React.FC = () => {
                   {gameState.questions.map((question) => (
                     <div key={question.id} className="flex-shrink-0 w-60 bg-gray-50 rounded-lg p-3 border border-gray-100">
                       <div className="font-open-sans text-sm">
-                        <p className="font-semibold text-primary">Q{question.id}: {question.text}</p>
-                        <p className={`mt-1 ${question.answer.toLowerCase().startsWith('yes') ? "text-secondary" : "text-accent"}`}>
+                        <p className="font-semibold text-gray-800">Q{question.id}: {question.text}</p>
+                        <p className={`mt-1 font-medium ${question.answer.toLowerCase().startsWith('yes') ? "text-green-600" : "text-red-600"}`}>
                           {question.answer}
                         </p>
                       </div>
@@ -458,7 +458,7 @@ const GameContainer: React.FC = () => {
                 </div>
               ) : (
                 <div className="text-center mb-4 response-animation">
-                  <h3 className={`text-3xl font-poppins font-bold mb-2 ${latestQuestion ? (isPositiveResponse ? 'text-secondary' : 'text-accent') : 'text-primary'}`}>
+                  <h3 className={`text-3xl font-poppins font-bold mb-2 ${latestQuestion ? (isPositiveResponse ? 'text-green-600' : 'text-red-600') : 'text-indigo-700'}`}>
                     {latestQuestion ? (isPositiveResponse ? 'Yes' : 'No') : "Let's Play!"}
                   </h3>
                   <p className="text-base text-textColor font-open-sans">
@@ -472,7 +472,7 @@ const GameContainer: React.FC = () => {
               <div className="text-center">
                 <div className="bg-gray-100 px-6 py-3 rounded-xl inline-block">
                   <p className="font-poppins font-medium flex items-baseline gap-1">
-                    <span className="text-2xl text-secondary font-bold">{gameState.questionCount}</span>
+                    <span className="text-2xl text-indigo-600 font-bold">{gameState.questionCount}</span>
                     <span className="text-sm text-gray-700">/ 20 Questions</span>
                   </p>
                 </div>
