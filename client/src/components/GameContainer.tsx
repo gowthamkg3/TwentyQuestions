@@ -33,6 +33,10 @@ const GameContainer: React.FC = () => {
     isPaused: false, // Game pause state
     waitingForLLMQuestion: false, // For V2 mode
     waitingForLLMAnswer: false, // For V2 mode
+    llmConfig: { // Default LLM configuration
+      questioner: "openai",
+      answerer: "openai"
+    },
     stats: {
       gamesPlayed: 0,
       gamesWon: 0,
@@ -72,6 +76,10 @@ const GameContainer: React.FC = () => {
         isPaused: false,
         waitingForLLMQuestion: false,
         waitingForLLMAnswer: false,
+        llmConfig: {
+          questioner: "openai",
+          answerer: "openai"
+        },
         stats: {
           gamesPlayed: 0,
           gamesWon: 0,

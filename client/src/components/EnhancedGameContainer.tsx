@@ -60,7 +60,11 @@ const EnhancedGameContainer: React.FC = () => {
     gameMode: "v1",
     difficulty: "medium",
     categories: ["animal", "place", "object", "food"],
-    showHints: true
+    showHints: true,
+    llmConfig: {
+      questioner: "openai",
+      answerer: "openai"
+    }
   };
 
   // Default game statistics

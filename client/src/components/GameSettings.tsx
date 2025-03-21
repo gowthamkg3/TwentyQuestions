@@ -19,7 +19,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { GameMode, Difficulty, WordCategory, GameSettings } from '@/lib/types';
+import { GameMode, Difficulty, WordCategory, GameSettings, LLMProvider } from '@/lib/types';
 
 interface GameSettingsProps {
   settings: GameSettings;
@@ -55,6 +55,26 @@ export function GameSettingsPanel({ settings, onSettingsChange, onClose, onStart
   
   const handleHintsToggle = (checked: boolean) => {
     setLocalSettings(prev => ({ ...prev, showHints: checked }));
+  };
+  
+  const handleQuestionerChange = (value: LLMProvider) => {
+    setLocalSettings(prev => ({
+      ...prev,
+      llmConfig: {
+        ...prev.llmConfig,
+        questioner: value
+      }
+    }));
+  };
+  
+  const handleAnswererChange = (value: LLMProvider) => {
+    setLocalSettings(prev => ({
+      ...prev,
+      llmConfig: {
+        ...prev.llmConfig,
+        answerer: value
+      }
+    }));
   };
   
   const handleSave = () => {
@@ -145,6 +165,45 @@ export function GameSettingsPanel({ settings, onSettingsChange, onClose, onStart
         </div>
         
         <Separator />
+        
+        {/* LLM Configuration */}
+        {localSettings.gameMode === "v2" && (
+          <>
+            <div className="space-y-3">
+              <Label className="text-md font-semibold">LLM Configuration</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="questioner" className="text-sm font-medium">Questioner LLM:</Label>
+                  <Select value={localSettings.llmConfig.questioner} onValueChange={handleQuestionerChange}>
+                    <SelectTrigger id="questioner" className="w-full mt-1">
+                      <SelectValue placeholder="Select LLM" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="openai">OpenAI</SelectItem>
+                      <SelectItem value="gemini">Google Gemini</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="answerer" className="text-sm font-medium">Answerer LLM:</Label>
+                  <Select value={localSettings.llmConfig.answerer} onValueChange={handleAnswererChange}>
+                    <SelectTrigger id="answerer" className="w-full mt-1">
+                      <SelectValue placeholder="Select LLM" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="openai">OpenAI</SelectItem>
+                      <SelectItem value="gemini">Google Gemini</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500">
+                Configure which AI models will ask questions and provide answers in AI vs AI mode.
+              </p>
+            </div>
+            <Separator />
+          </>
+        )}
         
         {/* Hints Toggle */}
         <div className="flex items-center justify-between space-x-2">
