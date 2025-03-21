@@ -15,7 +15,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { apiRequest } from '@lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowDownIcon, ArrowUpIcon, TrophyIcon, ClockIcon, BrainIcon } from 'lucide-react';
 

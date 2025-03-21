@@ -12,7 +12,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from '@/components/ui/alert';
-import { apiRequest } from '@lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 interface HintSystemProps {

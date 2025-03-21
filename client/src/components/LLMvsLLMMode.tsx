@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { QuestionCard } from './QuestionCard';
+import QuestionCard from './QuestionCard';
 import { HintSystem } from './HintSystem';
-import { apiRequest } from '@lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Question } from '@lib/types';
+import { Question } from '@/lib/types';
 import { Brain, Cpu, MessageCircle, FastForward, Play, Pause, TrendingUp } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';

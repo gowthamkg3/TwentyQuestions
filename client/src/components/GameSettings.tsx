@@ -19,7 +19,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { GameMode, Difficulty, WordCategory, GameSettings } from '@lib/types';
+import { GameMode, Difficulty, WordCategory, GameSettings } from '@/lib/types';
 
 interface GameSettingsProps {
   settings: GameSettings;

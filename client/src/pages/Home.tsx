@@ -1,10 +1,10 @@
 import React from "react";
-import GameContainer from "@/components/GameContainer";
+import EnhancedGameContainer from "@/components/EnhancedGameContainer";
 
 const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
-      <GameContainer />
+      <EnhancedGameContainer />
     </div>
   );
 };
