@@ -96,11 +96,14 @@ const GameContainer: React.FC = () => {
   // Ask a question
   const askQuestionMutation = useMutation({
     mutationFn: async (question: string) => {
-      const response = await apiRequest<{
+      return await apiRequest<{
         question: string;
         answer: string;
-      }>("POST", "/api/game/ask", { question });
-      return response;
+      }>("/api/game/ask", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question })
+      });
     },
     onSuccess: (data) => {
       setThinking(false);
@@ -180,8 +183,15 @@ const GameContainer: React.FC = () => {
   // Make final guess
   const makeFinalGuessMutation = useMutation({
     mutationFn: async (guess: string) => {
-      const response = await apiRequest("POST", "/api/game/guess", { guess });
-      return response.json();
+      return await apiRequest<{
+        correct: boolean;
+        feedback: string;
+        word: string;
+      }>("/api/game/guess", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guess })
+      });
     },
     onSuccess: (data) => {
       setThinking(false);
@@ -301,7 +311,7 @@ const GameContainer: React.FC = () => {
             >
               New Game
             </Button>
-            <Button onClick={() => setGameState(prev => ({...prev, controlPanelOpen: !prev.controlPanelOpen}))} variant="ghost">
+            <Button onClick={() => setGameState(prev => ({...prev, showControlPanel: !prev.showControlPanel}))} variant="ghost">
               <Menu className="h-6 w-6"/>
             </Button>
           </div>
@@ -309,7 +319,19 @@ const GameContainer: React.FC = () => {
       </header>
 
       {/* Control Panel */}
-      {gameState.controlPanelOpen && <ControlPanel />}
+      {gameState.showControlPanel && (
+        <ControlPanel 
+          isPaused={gameState.isPaused}
+          onPause={() => setGameState(prev => ({ ...prev, isPaused: !prev.isPaused }))}
+          onStop={() => setGameState(prev => ({ 
+            ...prev, 
+            isGameActive: false,
+            showControlPanel: false,
+            statusMessage: "Game stopped by user."
+          }))}
+          onNewGame={startNewGame}
+        />
+      )}
 
       {/* Main Game Area */}
       <main className="flex-grow container mx-auto px-4 py-6">
