@@ -10,23 +10,29 @@ import QuestionCard from "./QuestionCard";
 import GameEndModal from "./GameEndModal";
 import { Menu, ChevronRight, ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ControlPanel } from './ControlPanel'; // Added ControlPanel import
+import { StatusMessage } from './StatusMessage'; // Added StatusMessage import
+
 
 const GameContainer: React.FC = () => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const questionInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Game state
   const [gameState, setGameState] = useState<GameState>({
     questionCount: 0,
     isGameActive: false,
     questions: [],
     isHistoryCollapsed: false,
+    controlPanelOpen: false, // Added state for control panel
+    statusMessage: "", // Added state for status messages
+    delay: 0, //Added state for delay
   });
 
   const [thinking, setThinking] = useState(false);
   const [finalGuessMode, setFinalGuessMode] = useState(false);
-  
+
   // Start a new game
   const startGameMutation = useMutation({
     mutationFn: async () => {
@@ -40,6 +46,9 @@ const GameContainer: React.FC = () => {
         questions: [],
         isHistoryCollapsed: false,
         selectedWord: data.word, // This will be hidden from the client in production
+        controlPanelOpen: false, // Initialize control panel state
+        statusMessage: "", // Initialize status message state
+        delay: 0, // Initialize delay
       });
       setThinking(false);
       setFinalGuessMode(false);
@@ -52,7 +61,7 @@ const GameContainer: React.FC = () => {
       });
     },
   });
-  
+
   // Ask a question
   const askQuestionMutation = useMutation({
     mutationFn: async (question: string) => {
@@ -61,7 +70,7 @@ const GameContainer: React.FC = () => {
     },
     onSuccess: (data) => {
       setThinking(false);
-      
+
       // Add new question to state
       setGameState((prev) => {
         const newQuestions = [
@@ -72,9 +81,9 @@ const GameContainer: React.FC = () => {
             answer: data.answer 
           }
         ];
-        
+
         const newCount = prev.questionCount + 1;
-        
+
         // Check if the user correctly guessed the answer
         const questionLower = data.question.toLowerCase();
         const answerLower = data.answer.toLowerCase();
@@ -83,22 +92,23 @@ const GameContainer: React.FC = () => {
           answerLower.startsWith("yes") && 
           answerLower.includes("that's exactly what i was thinking of")
         );
-        
+
         if (isCorrectGuess) {
           return {
             ...prev,
             questionCount: newCount,
             questions: newQuestions,
             isGameActive: false,
-            gameResult: "win"
+            gameResult: "win",
+            statusMessage: "Congratulations! You won!", //Added status message
           };
         }
-        
+
         // Check if we should enter final guess mode
         if (newCount === 19) {
           setFinalGuessMode(true);
         }
-        
+
         // Check if game should end
         if (newCount >= 20) {
           return {
@@ -106,17 +116,18 @@ const GameContainer: React.FC = () => {
             questionCount: newCount,
             questions: newQuestions,
             isGameActive: false,
-            gameResult: "lose"
+            gameResult: "lose",
+            statusMessage: "You ran out of questions. You lose!", //Added status message
           };
         }
-        
+
         return {
           ...prev,
           questionCount: newCount,
           questions: newQuestions
         };
       });
-      
+
       if (questionInputRef.current) {
         questionInputRef.current.value = "";
         questionInputRef.current.focus();
@@ -131,7 +142,7 @@ const GameContainer: React.FC = () => {
       });
     },
   });
-  
+
   // Make final guess
   const makeFinalGuessMutation = useMutation({
     mutationFn: async (guess: string) => {
@@ -145,8 +156,9 @@ const GameContainer: React.FC = () => {
         isGameActive: false,
         gameResult: data.correct ? "win" : "lose",
         selectedWord: data.word,
+        statusMessage: data.correct ? "Congratulations! You guessed correctly!" : "Incorrect guess. You lose!", //Added status message
       }));
-      
+
       if (questionInputRef.current) {
         questionInputRef.current.value = "";
       }
@@ -160,7 +172,7 @@ const GameContainer: React.FC = () => {
       });
     },
   });
-  
+
   // Toggle history sidebar
   const toggleHistorySidebar = () => {
     setGameState(prev => ({
@@ -168,11 +180,11 @@ const GameContainer: React.FC = () => {
       isHistoryCollapsed: !prev.isHistoryCollapsed
     }));
   };
-  
+
   // Handle asking a question
   const handleAskQuestion = () => {
     if (!gameState.isGameActive || thinking) return;
-    
+
     const question = questionInputRef.current?.value.trim();
     if (!question) {
       toast({
@@ -182,15 +194,15 @@ const GameContainer: React.FC = () => {
       });
       return;
     }
-    
+
     setThinking(true);
     askQuestionMutation.mutate(question);
   };
-  
+
   // Handle making a final guess
   const handleFinalGuess = () => {
     if (!gameState.isGameActive || thinking) return;
-    
+
     const guess = questionInputRef.current?.value.trim();
     if (!guess) {
       toast({
@@ -200,11 +212,11 @@ const GameContainer: React.FC = () => {
       });
       return;
     }
-    
+
     setThinking(true);
     makeFinalGuessMutation.mutate(guess);
   };
-  
+
   // Handle "Enter" key press in input field
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -215,17 +227,17 @@ const GameContainer: React.FC = () => {
       }
     }
   };
-  
+
   // Start new game
   const startNewGame = () => {
     startGameMutation.mutate();
   };
-  
+
   // Handle play again
   const handlePlayAgain = () => {
     startNewGame();
   };
-  
+
   // Start game on component mount
   useEffect(() => {
     startNewGame();
@@ -239,7 +251,7 @@ const GameContainer: React.FC = () => {
 
   const latestQuestion = getLatestQuestion();
   const isPositiveResponse = latestQuestion?.answer.toLowerCase().startsWith('yes');
-  
+
   return (
     <div className="flex flex-col min-h-screen bg-background font-open-sans text-textColor">
       {/* Header */}
@@ -255,12 +267,21 @@ const GameContainer: React.FC = () => {
             >
               New Game
             </Button>
+            <Button onClick={() => setGameState(prev => ({...prev, controlPanelOpen: !prev.controlPanelOpen}))} variant="ghost">
+              <Menu className="h-6 w-6"/>
+            </Button>
           </div>
         </div>
       </header>
 
+      {/* Control Panel */}
+      {gameState.controlPanelOpen && <ControlPanel />}
+
       {/* Main Game Area */}
       <main className="flex-grow container mx-auto px-4 py-6">
+        {/* Status Message */}
+        <StatusMessage message={gameState.statusMessage} />
+
         {/* Desktop Layout */}
         {!isMobile && (
           <div className="hidden md:flex h-[calc(100vh-140px)] gap-4">
@@ -330,7 +351,7 @@ const GameContainer: React.FC = () => {
                     </p>
                   </div>
                 )}
-                
+
                 <div className="text-center">
                   <div className="bg-gray-100 px-8 py-4 rounded-2xl inline-block">
                     <p className="font-poppins font-medium flex items-baseline gap-1">
@@ -352,7 +373,7 @@ const GameContainer: React.FC = () => {
                 <h2 className="text-2xl font-poppins font-semibold mb-6 text-center">
                   {finalGuessMode ? "Make Your Final Guess" : "Ask a Yes/No Question"}
                 </h2>
-                
+
                 <div className="space-y-6">
                   <div>
                     <label htmlFor="questionInput" className="block text-textColor text-sm font-medium mb-2">
@@ -367,7 +388,7 @@ const GameContainer: React.FC = () => {
                       onKeyPress={handleKeyPress}
                     />
                   </div>
-                  
+
                   {finalGuessMode ? (
                     <div>
                       <Button
@@ -392,7 +413,7 @@ const GameContainer: React.FC = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="mt-6">
                 <p className="text-sm text-gray-500 text-center font-open-sans">
                   {finalGuessMode 
@@ -468,7 +489,7 @@ const GameContainer: React.FC = () => {
                   </p>
                 </div>
               )}
-              
+
               <div className="text-center">
                 <div className="bg-gray-100 px-6 py-3 rounded-xl inline-block">
                   <p className="font-poppins font-medium flex items-baseline gap-1">
@@ -484,7 +505,7 @@ const GameContainer: React.FC = () => {
               <h2 className="text-lg font-poppins font-semibold mb-3 text-center">
                 {finalGuessMode ? "Make Your Final Guess" : "Ask a Yes/No Question"}
               </h2>
-              
+
               <div className="space-y-3">
                 <div>
                   <label htmlFor="questionInputMobile" className="block text-textColor text-sm font-medium mb-1.5">
@@ -499,7 +520,7 @@ const GameContainer: React.FC = () => {
                     onKeyPress={handleKeyPress}
                   />
                 </div>
-                
+
                 {finalGuessMode ? (
                   <div>
                     <Button

@@ -7,6 +7,19 @@ import { selectRandomWord, answerQuestion, checkFinalGuess } from "./openai";
 let currentGameSessionId: string | null = null;
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Stop current game
+  app.post("/api/game/stop", async (req, res) => {
+    try {
+      if (currentGameSessionId) {
+        await storage.endGameSession(currentGameSessionId, false);
+        currentGameSessionId = null;
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error stopping game:", error);
+      res.status(500).json({ error: "Failed to stop game" });
+    }
+  });
   // Start a new game
   app.post("/api/game/start", async (req, res) => {
     try {
