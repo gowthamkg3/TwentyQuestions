@@ -248,19 +248,23 @@ const GameContainer: React.FC = () => {
             <div
               className={`${
                 gameState.isHistoryCollapsed
-                  ? "w-0 p-0 overflow-hidden"
+                  ? "w-12 p-0"
                   : "w-1/5"
               } bg-white rounded-2xl shadow-md flex flex-col transition-all duration-300`}
             >
-              <div className="flex justify-between items-center p-4 border-b">
-                <h2 className="font-poppins font-semibold text-lg">Question History</h2>
+              <div className={`flex justify-between items-center p-4 ${gameState.isHistoryCollapsed ? "justify-center" : "border-b"}`}>
+                {!gameState.isHistoryCollapsed && <h2 className="font-poppins font-semibold text-lg">Question History</h2>}
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={toggleHistorySidebar}
                   className="text-primary hover:text-primary/70 transition"
                 >
-                  <Menu className="h-6 w-6" />
+                  {gameState.isHistoryCollapsed ? (
+                    <ChevronRight className="h-6 w-6" />
+                  ) : (
+                    <ChevronLeft className="h-6 w-6" />
+                  )}
                 </Button>
               </div>
               <div className="flex-grow overflow-y-auto custom-scrollbar p-4 space-y-3">
