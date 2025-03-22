@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 
 interface LLMvsLLMModeProps {
-  onGameEnd: (result: { correct: boolean, feedback: string, word: string }) => void;
+  onGameEnd: (result: { correct: boolean, feedback: string, word: string, guess: string }) => void;
   onHintUsed: (hint: string) => void;
   hintsUsed: number;
   isPaused: boolean;
