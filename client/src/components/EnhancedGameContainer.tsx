@@ -726,8 +726,8 @@ const EnhancedGameContainer: React.FC = () => {
                             </div>
                           )}
                           
-                          {/* Hints System */}
-                          {currentSettings.showHints && gameState.hints && gameState.hints.length > 0 && (
+                          {/* Hints System - Only display when showHints is true in current settings */}
+                          {currentSettings.showHints === true && gameState.hints && gameState.hints.length > 0 && (
                             <div className="w-full mb-6">
                               <HintSystem 
                                 gameActive={gameState.isGameActive && !gameState.isPaused}
@@ -875,7 +875,7 @@ const EnhancedGameContainer: React.FC = () => {
                       )}
                       
                       {/* Hints System Mobile */}
-                      {currentSettings.showHints && gameState.hints && gameState.hints.length > 0 && (
+                      {currentSettings.showHints === true && gameState.hints && gameState.hints.length > 0 && (
                         <div className="w-full mb-4">
                           <HintSystem 
                             gameActive={gameState.isGameActive && !gameState.isPaused}
@@ -969,6 +969,7 @@ const EnhancedGameContainer: React.FC = () => {
         word={gameState.selectedWord || ""}
         questionCount={gameState.questionCount}
         onPlayAgain={handlePlayAgain}
+        onClose={() => setGameState(prev => ({ ...prev, gameResult: null }))}
         feedback={gameState.statusMessage}
         guess={gameState.currentLLMQuestion}
         isLLMvsLLM={gameState.gameMode === "v2"}

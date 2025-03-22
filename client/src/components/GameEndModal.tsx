@@ -48,6 +48,16 @@ const GameEndModal: React.FC<GameEndModalProps> = ({
   return (
     <AlertDialog open={open}>
       <AlertDialogContent className="max-w-md mx-auto">
+        {/* Close button in top-right corner */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute right-2 top-2" 
+          onClick={onClose}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+        
         {result === "win" && (
           <div className="text-center">
             <div className="w-20 h-20 mx-auto bg-secondary rounded-full flex items-center justify-center mb-4">

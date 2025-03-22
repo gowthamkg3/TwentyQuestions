@@ -19,6 +19,7 @@ interface LLMvsLLMModeProps {
   difficulty: string;
   category: string;
   llmConfig: LLMConfig;
+  showHints?: boolean; // Add optional prop to control hints visibility
 }
 
 export function LLMvsLLMMode({ 
