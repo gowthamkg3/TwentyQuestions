@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, AlertCircle } from "lucide-react";
+import { LLMConfig } from "@/lib/types";
 
 interface GameEndModalProps {
   open: boolean;
@@ -13,6 +14,10 @@ interface GameEndModalProps {
   word: string;
   questionCount: number;
   onPlayAgain: () => void;
+  feedback?: string;
+  guess?: string;
+  isLLMvsLLM?: boolean;
+  llmConfig?: LLMConfig;
 }
 
 const GameEndModal: React.FC<GameEndModalProps> = ({
@@ -20,8 +25,22 @@ const GameEndModal: React.FC<GameEndModalProps> = ({
   result,
   word,
   questionCount,
-  onPlayAgain
+  onPlayAgain,
+  feedback,
+  guess,
+  isLLMvsLLM = false,
+  llmConfig
 }) => {
+  const getQuestionerName = () => {
+    if (!isLLMvsLLM || !llmConfig) return "You";
+    return llmConfig.questioner === "openai" ? "OpenAI" : "Gemini";
+  };
+
+  const getAnswererName = () => {
+    if (!isLLMvsLLM || !llmConfig) return "I";
+    return llmConfig.answerer === "openai" ? "OpenAI" : "Gemini";
+  };
+
   return (
     <AlertDialog open={open}>
       <AlertDialogContent className="max-w-md mx-auto">
@@ -30,12 +49,25 @@ const GameEndModal: React.FC<GameEndModalProps> = ({
             <div className="w-20 h-20 mx-auto bg-secondary rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="h-12 w-12 text-white" />
             </div>
-            <h2 className="text-3xl font-poppins font-bold text-secondary mb-2">Congratulations!</h2>
-            <p className="text-lg mb-6 font-open-sans">
-              You guessed it! I was thinking of "{word}".
-            </p>
+            <h2 className="text-3xl font-poppins font-bold text-secondary mb-2">
+              {isLLMvsLLM ? `${getQuestionerName()} Won!` : "Congratulations!"}
+            </h2>
+            {isLLMvsLLM ? (
+              <>
+                <p className="text-lg mb-2 font-open-sans">
+                  {getQuestionerName()} guessed "{guess}".
+                </p>
+                <p className="text-sm mb-6 font-open-sans text-gray-600">
+                  {feedback}
+                </p>
+              </>
+            ) : (
+              <p className="text-lg mb-6 font-open-sans">
+                You guessed it! {getAnswererName()} was thinking of "{word}".
+              </p>
+            )}
             <p className="text-base mb-6 font-open-sans">
-              You used <span className="font-semibold text-primary">{questionCount}</span> out of 20 questions.
+              {isLLMvsLLM ? `${getQuestionerName()} used` : "You used"} <span className="font-semibold text-primary">{questionCount}</span> out of 20 questions.
             </p>
           </div>
         )}
@@ -46,12 +78,25 @@ const GameEndModal: React.FC<GameEndModalProps> = ({
               <AlertCircle className="h-12 w-12 text-white" />
             </div>
             <h2 className="text-3xl font-poppins font-bold text-accent mb-2">Game Over!</h2>
-            <p className="text-lg mb-6 font-open-sans">
-              I was thinking of "{word}".
-            </p>
-            <p className="text-base mb-6 font-open-sans">
-              You used all 20 questions but couldn't guess the answer.
-            </p>
+            {isLLMvsLLM ? (
+              <>
+                <p className="text-lg mb-2 font-open-sans">
+                  {getAnswererName()} was thinking of "{word}".
+                </p>
+                <p className="text-sm mb-6 font-open-sans text-gray-600">
+                  {getQuestionerName()} guessed "{guess}" but was incorrect. {feedback}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-lg mb-6 font-open-sans">
+                  {getAnswererName()} was thinking of "{word}".
+                </p>
+                <p className="text-base mb-6 font-open-sans">
+                  You used all 20 questions but couldn't guess the answer.
+                </p>
+              </>
+            )}
           </div>
         )}
         

@@ -437,12 +437,14 @@ const EnhancedGameContainer: React.FC = () => {
   };
 
   // Handle LLM game end
-  const handleLLMGameEnd = (result: { correct: boolean, feedback: string, word: string }) => {
+  const handleLLMGameEnd = (result: { correct: boolean, feedback: string, word: string, guess: string }) => {
     setGameState(prev => ({
       ...prev,
       isGameActive: false,
       gameResult: result.correct ? "win" : "lose",
       selectedWord: result.word,
+      statusMessage: result.feedback,
+      currentLLMQuestion: result.guess,
       
       // Update stats
       stats: {
@@ -934,6 +936,10 @@ const EnhancedGameContainer: React.FC = () => {
         word={gameState.selectedWord || ""}
         questionCount={gameState.questionCount}
         onPlayAgain={handlePlayAgain}
+        feedback={gameState.statusMessage}
+        guess={gameState.currentLLMQuestion}
+        isLLMvsLLM={gameState.gameMode === "v2"}
+        llmConfig={gameState.llmConfig}
       />
     </div>
   );

@@ -124,11 +124,7 @@ export function LLMvsLLMMode({
       setIsGameActive(false);
       onGameEnd(response);
       
-      toast({
-        title: response.correct ? "LLM Won!" : "LLM Lost!",
-        description: `The LLM guessed "${response.guess}". ${response.feedback}`,
-        variant: response.correct ? "default" : "destructive"
-      });
+      // Removed toast notification - feedback now shown in dialog
     } catch (error) {
       console.error("Error making final guess:", error);
       toast({
@@ -149,13 +145,7 @@ export function LLMvsLLMMode({
   // Toggle auto-play
   const toggleAutoPlay = () => {
     setAutoPlay(prev => !prev);
-    if (!autoPlay) {
-      toast({
-        title: "Auto-Play Enabled",
-        description: "The LLMs will automatically ask and answer questions.",
-        variant: "default"
-      });
-    }
+    // Removed toast notification
   };
 
   // Change auto-play speed
@@ -163,13 +153,13 @@ export function LLMvsLLMMode({
     // Cycle through different speeds
     if (autoPlaySpeed === 3000) {
       setAutoPlaySpeed(2000);
-      toast({ description: "Speed: Fast (2s)" });
+      // Removed toast notification
     } else if (autoPlaySpeed === 2000) {
       setAutoPlaySpeed(1000);
-      toast({ description: "Speed: Very Fast (1s)" });
+      // Removed toast notification
     } else {
       setAutoPlaySpeed(3000);
-      toast({ description: "Speed: Normal (3s)" });
+      // Removed toast notification
     }
   };
 
