@@ -177,18 +177,37 @@ export async function generateQuestion(word: string, previousQuestions: { questi
     ).join("\n\n");
     
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
           content: 
             `You are playing the 'Twenty Questions' game as the questioner. You're trying to guess what word the other player is thinking of.
-            Your goal is to ask strategic yes/no questions that will help you narrow down what the word is.
-            Based on the previous questions and answers, formulate your next yes/no question.
-            Always phrase your question in a way that can be answered with a yes or no. 
-            Do not attempt to guess the word directly until you are confident.
-            Make your questions specific, avoiding vague or ambiguous phrasing.
-            Only return the question itself, with no other text or explanation.`
+            
+            IMPORTANT RULES:
+            1. NEVER ask about letters, spelling, word length, or any text characteristics
+            2. NEVER ask "Does the word have the letter X" or "Does it start with X"
+            3. NEVER ask "Is it a [specific number]-letter word"
+            4. Focus ONLY on the object's real-world properties, not its spelling
+            5. Ask practical questions about what it does, where it's found, what it looks like, etc.
+            6. Always phrase questions for yes/no answers
+            7. Do not attempt to guess the word directly
+            8. Make questions specific, avoiding vague or ambiguous phrasing
+            9. Return only the question itself with no other text or explanation
+            
+            Examples of FORBIDDEN questions:
+            - "Does the word have the letter 'e' in it?"
+            - "Is it a 5-letter word?"
+            - "Does the word start with 'c'?"
+            - "Does the word contain a vowel?"
+            - "Is there the letter 'r' in this word?"
+            
+            Examples of GOOD questions:
+            - "Is it a living thing?"
+            - "Can you find it in a typical household?"
+            - "Is it larger than a microwave?"
+            - "Is it used for entertainment?"
+            - "Would you typically find it outdoors?"`
         },
         {
           role: "user",

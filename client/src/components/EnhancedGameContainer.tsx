@@ -141,27 +141,45 @@ const EnhancedGameContainer: React.FC = () => {
       });
     },
     onSuccess: (data) => {
-      setGameState(prev => ({
-        ...prev,
+      // Create a completely fresh game state instead of updating the previous one
+      const newGameState: GameState = {
+        // Core game state
         isGameActive: true,
         questionCount: 0,
         questions: [],
+        isHistoryCollapsed: false,
         selectedWord: data.word,
         selectedCategory: data.category as WordCategory,
         gameResult: null,
+        
+        // New features
         gameMode: data.gameMode as GameMode,
         difficulty: data.difficulty as Difficulty,
+        statusMessage: undefined,
         hints: data.hints || [],
         hintsUsed: 0,
         gameStartTime: Date.now(),
         isPaused: false,
+        showControlPanel: false,
+        
+        // For V2 mode
         waitingForLLMQuestion: data.gameMode === "v2",
         waitingForLLMAnswer: false,
-        llmConfig: currentSettings.llmConfig
-      }));
+        currentLLMQuestion: undefined,
+        llmConfig: currentSettings.llmConfig,
+        
+        // Keep the existing stats
+        stats: gameState.stats
+      };
+      
+      // Set the completely new state
+      setGameState(newGameState);
+      
+      // Reset all other UI state
       setFinalGuessMode(false);
       setThinking(false);
       setSidebarOpen(null);
+      setCurrentQuestion("");
       
       toast({
         title: "New Game Started",

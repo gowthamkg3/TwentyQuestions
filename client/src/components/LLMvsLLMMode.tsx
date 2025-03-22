@@ -37,7 +37,7 @@ export function LLMvsLLMMode({
   const [isGameActive, setIsGameActive] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [questionCount, setQuestionCount] = useState(0);
-  const [autoPlay, setAutoPlay] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(true);
   const [autoPlaySpeed, setAutoPlaySpeed] = useState(3000); // 3 seconds between questions
   const { toast } = useToast();
 
