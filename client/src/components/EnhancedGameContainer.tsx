@@ -437,7 +437,7 @@ const EnhancedGameContainer: React.FC = () => {
   };
 
   // Handle LLM game end
-  const handleLLMGameEnd = (result: { correct: boolean, feedback: string, word: string, guess: string }) => {
+  const handleLLMGameEnd = (result: { correct: boolean, feedback: string, word: string, guess: string, questionCount: number }) => {
     setGameState(prev => ({
       ...prev,
       isGameActive: false,
@@ -445,6 +445,7 @@ const EnhancedGameContainer: React.FC = () => {
       selectedWord: result.word,
       statusMessage: result.feedback,
       currentLLMQuestion: result.guess,
+      questionCount: result.questionCount, // Use the actual question count from the response
       
       // Update stats
       stats: {
@@ -452,11 +453,11 @@ const EnhancedGameContainer: React.FC = () => {
         gamesPlayed: prev.stats.gamesPlayed + 1,
         gamesWon: result.correct ? prev.stats.gamesWon + 1 : prev.stats.gamesWon,
         averageQuestions: Math.round(
-          (prev.stats.averageQuestions * prev.stats.gamesPlayed + prev.questionCount) / 
+          (prev.stats.averageQuestions * prev.stats.gamesPlayed + result.questionCount) / 
           (prev.stats.gamesPlayed + 1)
         ),
-        bestScore: result.correct && prev.questionCount < prev.stats.bestScore 
-          ? prev.questionCount 
+        bestScore: result.correct && result.questionCount < prev.stats.bestScore 
+          ? result.questionCount 
           : prev.stats.bestScore,
         completionTimes: [...prev.stats.completionTimes, 
           Math.floor((Date.now() - (prev.gameStartTime || 0)) / 1000)]

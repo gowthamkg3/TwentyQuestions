@@ -346,6 +346,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // V2 Mode: Assess if LLM is ready to make a guess
+  app.post("/api/game/assess-readiness", async (req, res) => {
+    try {
+      const { llmConfig, questionCount } = req.body;
+      
+      // Validate game session
+      if (!currentGameSessionId) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Get the game session
+      const session = await storage.getGameSession(currentGameSessionId);
+      if (!session || !session.active) {
+        return res.status(400).json({ error: "No active game session" });
+      }
+      
+      // Check game mode
+      if (session.gameMode !== "v2") {
+        return res.status(400).json({ error: "This endpoint is only available in V2 mode" });
+      }
+      
+      // Skip assessment if there are fewer than 4 questions
+      if (questionCount < 4) {
+        return res.json({ readyToGuess: false });
+      }
+      
+      // Use the client-provided config if valid, otherwise fall back to session config
+      const activeConfig = (llmConfig && llmConfig.questioner) ? llmConfig : session.llmConfig;
+      
+      // Get conversation history
+      const conversationHistory = session.questions.map(q => ({
+        question: q.question,
+        answer: q.answer
+      }));
+      
+      // Make a preliminary guess
+      let preliminaryGuess;
+      if (activeConfig?.questioner === "gemini") {
+        preliminaryGuess = await makeGuessGemini(conversationHistory);
+      } else {
+        preliminaryGuess = await makeGuess(conversationHistory);
+      }
+      
+      // Check if the guess is correct
+      let checkResult;
+      if (activeConfig?.answerer === "gemini") {
+        checkResult = await checkFinalGuessGemini(session.word, preliminaryGuess, conversationHistory);
+      } else {
+        checkResult = await checkFinalGuess(session.word, preliminaryGuess, conversationHistory);
+      }
+      
+      // If the guess is correct and we have at least 4 questions, allow an early guess
+      const readyToGuess = checkResult.correct;
+      
+      res.json({ readyToGuess });
+    } catch (error) {
+      // Gracefully handle errors by assuming not ready
+      console.error("Error in assess-readiness:", error);
+      res.json({ readyToGuess: false });
+    }
+  });
+  
   // Make final guess
   app.post("/api/game/guess", async (req, res) => {
     try {

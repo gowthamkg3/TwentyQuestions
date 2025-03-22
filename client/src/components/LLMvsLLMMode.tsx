@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 
 interface LLMvsLLMModeProps {
-  onGameEnd: (result: { correct: boolean, feedback: string, word: string, guess: string }) => void;
+  onGameEnd: (result: { correct: boolean, feedback: string, word: string, guess: string, questionCount: number }) => void;
   onHintUsed: (hint: string) => void;
   hintsUsed: number;
   isPaused: boolean;
@@ -60,7 +60,26 @@ export function LLMvsLLMMode({
     
     setIsLoading(true);
     try {
-      // First, get a question from the LLM with the configured questioner
+      // First, check if the LLM is ready to make a guess
+      if (questions.length >= 4 && questions.length % 2 === 0) {
+        // Make an assessment call to see if LLM is ready to guess
+        const assessmentResponse = await apiRequest<{ readyToGuess: boolean }>('/api/game/assess-readiness', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            llmConfig,
+            questionCount: questions.length
+          })
+        }).catch(() => ({ readyToGuess: false }));
+        
+        // If the LLM is confident it knows the answer, skip to the final guess
+        if (assessmentResponse.readyToGuess) {
+          makeLLMFinalGuess();
+          return;
+        }
+      }
+      
+      // If not ready to guess, get a new question from the LLM
       const questionResponse = await apiRequest<{ question: string, questionCount: number }>('/api/game/llm-question', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -122,7 +141,14 @@ export function LLMvsLLMMode({
       });
       
       setIsGameActive(false);
-      onGameEnd(response);
+      
+      // Create enhanced response with question count
+      const enhancedResponse = {
+        ...response,
+        questionCount: questions.length // Pass the actual question count
+      };
+      
+      onGameEnd(enhancedResponse);
       
       // Removed toast notification - feedback now shown in dialog
     } catch (error) {

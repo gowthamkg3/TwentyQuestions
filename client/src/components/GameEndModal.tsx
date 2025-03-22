@@ -57,7 +57,7 @@ const GameEndModal: React.FC<GameEndModalProps> = ({
                 <p className="text-lg mb-2 font-open-sans">
                   {getQuestionerName()} guessed "{guess}".
                 </p>
-                <p className="text-sm mb-6 font-open-sans text-gray-600">
+                <p className="text-sm mb-6 font-open-sans text-gray-800">
                   {feedback}
                 </p>
               </>
@@ -83,7 +83,7 @@ const GameEndModal: React.FC<GameEndModalProps> = ({
                 <p className="text-lg mb-2 font-open-sans">
                   {getAnswererName()} was thinking of "{word}".
                 </p>
-                <p className="text-sm mb-6 font-open-sans text-gray-600">
+                <p className="text-sm mb-6 font-open-sans text-gray-800">
                   {getQuestionerName()} guessed "{guess}" but was incorrect. {feedback}
                 </p>
               </>
