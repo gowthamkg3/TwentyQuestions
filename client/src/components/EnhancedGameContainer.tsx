@@ -404,6 +404,40 @@ const EnhancedGameContainer: React.FC = () => {
 
   // Start a new game
   const handleStartNewGame = () => {
+    // First, clear the previous game state completely
+    setGameState(prev => ({
+      // Core game state
+      questionCount: 0,
+      isGameActive: false,
+      questions: [],
+      isHistoryCollapsed: false,
+      selectedWord: undefined,
+      selectedCategory: undefined,
+      gameResult: null,
+      
+      // New features
+      gameMode: "v1",
+      difficulty: "medium",
+      hintsUsed: 0,
+      isPaused: false,
+      showControlPanel: false,
+      
+      // For V2 mode
+      waitingForLLMQuestion: false,
+      waitingForLLMAnswer: false,
+      currentLLMQuestion: undefined,
+      llmConfig: prev.llmConfig,
+      
+      // Keep the existing stats
+      stats: prev.stats
+    }));
+    
+    // Reset all UI state
+    setFinalGuessMode(false);
+    setThinking(false);
+    setCurrentQuestion("");
+    
+    // Then start the mutation
     startGameMutation.mutate();
   };
 
@@ -411,16 +445,39 @@ const EnhancedGameContainer: React.FC = () => {
   const handlePlayAgain = () => {
     // Close the modal first to avoid state conflicts
     setGameState(prev => ({ 
-      ...prev, 
-      gameResult: null 
+      // Core game state
+      questionCount: 0,
+      isGameActive: false,
+      questions: [],
+      isHistoryCollapsed: false,
+      selectedWord: undefined,
+      selectedCategory: undefined,
+      gameResult: null,
+      
+      // New features
+      gameMode: prev.gameMode,
+      difficulty: prev.difficulty,
+      hintsUsed: 0,
+      isPaused: false,
+      showControlPanel: false,
+      
+      // For V2 mode
+      waitingForLLMQuestion: false,
+      waitingForLLMAnswer: false,
+      currentLLMQuestion: undefined,
+      llmConfig: prev.llmConfig,
+      
+      // Keep the existing stats
+      stats: prev.stats
     }));
     
-    // Start a new game directly - the mutation success handler will reset all the game state
-    startGameMutation.mutate();
-    
-    // Reset additional state variables that might be causing issues
+    // Reset all UI state
     setFinalGuessMode(false);
     setThinking(false);
+    setCurrentQuestion("");
+    
+    // Start a new game directly
+    startGameMutation.mutate();
   };
 
   // Handle settings change
@@ -442,9 +499,30 @@ const EnhancedGameContainer: React.FC = () => {
       apiRequest("/api/game/stop", { method: "POST" })
         .then(() => {
           setGameState(prev => ({
-            ...prev,
+            // Core game state
+            questionCount: 0,
             isGameActive: false,
-            gameResult: null
+            questions: [],
+            isHistoryCollapsed: false,
+            selectedWord: undefined,
+            selectedCategory: undefined,
+            gameResult: null,
+            
+            // New features
+            gameMode: prev.gameMode,
+            difficulty: prev.difficulty,
+            hintsUsed: 0,
+            isPaused: false,
+            showControlPanel: false,
+            
+            // For V2 mode
+            waitingForLLMQuestion: false,
+            waitingForLLMAnswer: false,
+            currentLLMQuestion: undefined,
+            llmConfig: prev.llmConfig,
+            
+            // Keep the existing stats
+            stats: prev.stats
           }));
           
           toast({
@@ -1029,10 +1107,46 @@ const EnhancedGameContainer: React.FC = () => {
             <div 
               className="border border-gray-200 hover:border-primary rounded-lg p-6 cursor-pointer transition duration-200 flex flex-col items-center hover:bg-gray-50"
               onClick={() => {
+                // First clear the game state completely
+                setGameState(prev => ({
+                  // Core game state
+                  questionCount: 0,
+                  isGameActive: false,
+                  questions: [],
+                  isHistoryCollapsed: false,
+                  selectedWord: undefined,
+                  selectedCategory: undefined,
+                  gameResult: null,
+                  
+                  // New features
+                  gameMode: "v1",
+                  difficulty: prev.difficulty,
+                  hintsUsed: 0,
+                  isPaused: false,
+                  showControlPanel: false,
+                  
+                  // For V2 mode
+                  waitingForLLMQuestion: false,
+                  waitingForLLMAnswer: false,
+                  currentLLMQuestion: undefined,
+                  llmConfig: prev.llmConfig,
+                  
+                  // Keep the existing stats
+                  stats: prev.stats
+                }));
+                
+                // Update settings
                 setCurrentSettings({
                   ...currentSettings,
                   gameMode: "v1"
                 });
+                
+                // Reset UI state
+                setFinalGuessMode(false);
+                setThinking(false);
+                setCurrentQuestion("");
+                
+                // Close modal and start game
                 setGameModeModalOpen(false);
                 startGameMutation.mutate();
               }}
@@ -1049,10 +1163,46 @@ const EnhancedGameContainer: React.FC = () => {
             <div 
               className="border border-gray-200 hover:border-primary rounded-lg p-6 cursor-pointer transition duration-200 flex flex-col items-center hover:bg-gray-50"
               onClick={() => {
+                // First clear the game state completely
+                setGameState(prev => ({
+                  // Core game state
+                  questionCount: 0,
+                  isGameActive: false,
+                  questions: [],
+                  isHistoryCollapsed: false,
+                  selectedWord: undefined,
+                  selectedCategory: undefined,
+                  gameResult: null,
+                  
+                  // New features
+                  gameMode: "v2",
+                  difficulty: prev.difficulty,
+                  hintsUsed: 0,
+                  isPaused: false,
+                  showControlPanel: false,
+                  
+                  // For V2 mode
+                  waitingForLLMQuestion: false,
+                  waitingForLLMAnswer: false,
+                  currentLLMQuestion: undefined,
+                  llmConfig: prev.llmConfig,
+                  
+                  // Keep the existing stats
+                  stats: prev.stats
+                }));
+                
+                // Update settings
                 setCurrentSettings({
                   ...currentSettings,
                   gameMode: "v2"
                 });
+                
+                // Reset UI state
+                setFinalGuessMode(false);
+                setThinking(false);
+                setCurrentQuestion("");
+                
+                // Close modal and start game
                 setGameModeModalOpen(false);
                 startGameMutation.mutate();
               }}
