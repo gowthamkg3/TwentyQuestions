@@ -2,10 +2,12 @@ import React from "react";
 import { 
   AlertDialog,
   AlertDialogContent,
-  AlertDialogFooter
+  AlertDialogFooter,
+  AlertDialogHeader, 
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, AlertCircle, X } from "lucide-react";
 import { LLMConfig } from "@/lib/types";
 
 interface GameEndModalProps {
@@ -14,6 +16,7 @@ interface GameEndModalProps {
   word: string;
   questionCount: number;
   onPlayAgain: () => void;
+  onClose: () => void;  // New prop for closing the modal
   feedback?: string;
   guess?: string;
   isLLMvsLLM?: boolean;
@@ -26,6 +29,7 @@ const GameEndModal: React.FC<GameEndModalProps> = ({
   word,
   questionCount,
   onPlayAgain,
+  onClose,
   feedback,
   guess,
   isLLMvsLLM = false,

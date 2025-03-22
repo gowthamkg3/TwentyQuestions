@@ -380,7 +380,39 @@ const EnhancedGameContainer: React.FC = () => {
 
   // Play again after game ends
   const handlePlayAgain = () => {
-    startGameMutation.mutate();
+    // Reset game state completely before starting new game
+    setGameState(prev => ({
+      // Core game state reset
+      questionCount: 0,
+      isGameActive: false,
+      questions: [],
+      isHistoryCollapsed: false,
+      selectedWord: undefined,
+      gameResult: null,
+      
+      // New features reset
+      gameMode: currentSettings.gameMode,
+      difficulty: currentSettings.difficulty,
+      statusMessage: undefined,
+      hints: [],
+      hintsUsed: 0,
+      isPaused: false,
+      showControlPanel: prev.showControlPanel,
+      
+      // V2 mode reset
+      waitingForLLMQuestion: false,
+      waitingForLLMAnswer: false,
+      currentLLMQuestion: undefined,
+      llmConfig: currentSettings.llmConfig,
+      
+      // Maintain stats
+      stats: prev.stats
+    }));
+    
+    // Start a new game with a slight delay to ensure clean state
+    setTimeout(() => {
+      startGameMutation.mutate();
+    }, 100);
   };
 
   // Handle settings change
