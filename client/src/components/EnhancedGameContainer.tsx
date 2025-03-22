@@ -688,13 +688,17 @@ const EnhancedGameContainer: React.FC = () => {
                     {!gameState.isGameActive ? (
                       // Start Game Area
                       <div className="h-full flex flex-col items-center justify-center">
-                        <h2 className="text-2xl font-poppins font-semibold mb-4 text-center">
-                          Welcome to 20 Questions!
-                        </h2>
-                        <p className="text-base text-textColor mb-8 text-center max-w-md">
-                          I'll think of something, and you'll try to guess it by asking yes/no questions.
-                          You have 20 questions to figure it out!
-                        </p>
+                        <div className="text-center mb-8">
+                          <h2 className="text-4xl font-poppins font-bold mb-6 text-center text-primary">
+                            Welcome to 20 Questions!
+                          </h2>
+                          <p className="text-lg text-gray-700 mb-4 text-center max-w-md mx-auto">
+                            I'll think of something, and you'll try to guess it by asking yes/no questions.
+                          </p>
+                          <p className="text-lg text-gray-700 mb-8 text-center max-w-md mx-auto">
+                            You have 20 questions to figure it out!
+                          </p>
+                        </div>
                         <Button
                           onClick={handleStartNewGame}
                           className="w-full max-w-xs bg-primary hover:bg-primary/90 text-white font-poppins font-medium py-3 rounded-lg shadow-md transition duration-300"
@@ -838,12 +842,17 @@ const EnhancedGameContainer: React.FC = () => {
                 {!gameState.isGameActive ? (
                   // Start Game Area Mobile
                   <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col">
-                    <h2 className="text-xl font-poppins font-semibold mb-3 text-center">
-                      Welcome to 20 Questions!
-                    </h2>
-                    <p className="text-sm text-textColor mb-4 text-center">
-                      I'll think of something, and you'll try to guess it by asking yes/no questions.
-                    </p>
+                    <div className="text-center mb-6">
+                      <h2 className="text-3xl font-poppins font-bold mb-4 text-center text-primary">
+                        Welcome to 20 Questions!
+                      </h2>
+                      <p className="text-base text-gray-700 mb-2 text-center">
+                        I'll think of something, and you'll try to guess it by asking yes/no questions.
+                      </p>
+                      <p className="text-base text-gray-700 mb-4 text-center">
+                        You have 20 questions to figure it out!
+                      </p>
+                    </div>
                     <Button
                       onClick={handleStartNewGame}
                       className="w-full bg-primary hover:bg-primary/90 text-white font-poppins font-medium py-3 rounded-lg shadow-md transition duration-300"
