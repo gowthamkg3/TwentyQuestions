@@ -629,41 +629,43 @@ const EnhancedGameContainer: React.FC = () => {
             {/* Desktop Layout */}
             {!isMobile && (
               <div className="hidden md:flex gap-6">
-                {/* Left Column - Question History (60%) */}
-                <div
-                  className={`${
-                    gameState.isHistoryCollapsed ? "w-0 opacity-0" : "w-3/5 opacity-100"
-                  } bg-white rounded-2xl shadow-md flex flex-col transition-all duration-300 overflow-hidden`}
-                >
-                  <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-                    <h2 className="font-poppins font-semibold text-lg">Question History</h2>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={toggleHistorySidebar}
-                      className="text-primary hover:text-primary/70 transition"
-                    >
-                      <ChevronLeft className="h-6 w-6" />
-                    </Button>
-                  </div>
-                  <div className="p-4 flex-grow overflow-y-auto custom-scrollbar">
-                    <div className="space-y-3">
-                      {gameState.questions.length === 0 ? (
-                        <div className="text-gray-400 text-center p-6">
-                          Your question history will appear here...
-                        </div>
-                      ) : (
-                        gameState.questions.map((question) => (
-                          <QuestionCard
-                            key={question.id}
-                            question={question}
-                            isPositive={question.answer.toLowerCase().startsWith('yes')}
-                          />
-                        ))
-                      )}
+                {/* Left Column - Question History (60%) - Only show during active game */}
+                {gameState.isGameActive && (
+                  <div
+                    className={`${
+                      gameState.isHistoryCollapsed ? "w-0 opacity-0" : "w-3/5 opacity-100"
+                    } bg-white rounded-2xl shadow-md flex flex-col transition-all duration-300 overflow-hidden`}
+                  >
+                    <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+                      <h2 className="font-poppins font-semibold text-lg">Question History</h2>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={toggleHistorySidebar}
+                        className="text-primary hover:text-primary/70 transition"
+                      >
+                        <ChevronLeft className="h-6 w-6" />
+                      </Button>
+                    </div>
+                    <div className="p-4 flex-grow overflow-y-auto custom-scrollbar">
+                      <div className="space-y-3">
+                        {gameState.questions.length === 0 ? (
+                          <div className="text-gray-400 text-center p-6">
+                            Your question history will appear here...
+                          </div>
+                        ) : (
+                          gameState.questions.map((question) => (
+                            <QuestionCard
+                              key={question.id}
+                              question={question}
+                              isPositive={question.answer.toLowerCase().startsWith('yes')}
+                            />
+                          ))
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Right Side - Main Game Area (40% or 100% if history is collapsed) */}
                 <div
@@ -684,27 +686,36 @@ const EnhancedGameContainer: React.FC = () => {
                   )}
 
                   {/* Game Area */}
-                  <div className="bg-white rounded-2xl shadow-md p-6 h-full flex flex-col">
+                  <div className="bg-white rounded-2xl shadow-md p-8 h-full flex flex-col">
                     {!gameState.isGameActive ? (
-                      // Start Game Area
+                      // Start Game Area - Enhanced and more prominent
                       <div className="h-full flex flex-col items-center justify-center">
-                        <div className="text-center mb-8">
-                          <h2 className="text-4xl font-poppins font-bold mb-6 text-center text-primary">
+                        <div className="text-center mb-10 max-w-xl mx-auto">
+                          <div className="mb-8 flex justify-center">
+                            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl">
+                                  20
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <h2 className="text-5xl font-poppins font-bold mb-6 text-center text-primary">
                             Welcome to 20 Questions!
                           </h2>
-                          <p className="text-lg text-gray-700 mb-4 text-center max-w-md mx-auto">
+                          <p className="text-xl text-gray-700 mb-4 text-center max-w-lg mx-auto leading-relaxed">
                             I'll think of something, and you'll try to guess it by asking yes/no questions.
                           </p>
-                          <p className="text-lg text-gray-700 mb-8 text-center max-w-md mx-auto">
+                          <p className="text-xl text-gray-700 mb-10 text-center max-w-lg mx-auto leading-relaxed">
                             You have 20 questions to figure it out!
                           </p>
                         </div>
                         <Button
                           onClick={handleStartNewGame}
-                          className="w-full max-w-xs bg-primary hover:bg-primary/90 text-white font-poppins font-medium py-3 rounded-lg shadow-md transition duration-300"
+                          className="w-full max-w-sm bg-primary hover:bg-primary/90 text-white font-poppins font-semibold py-4 px-8 rounded-xl shadow-lg transition duration-300 text-lg"
                           disabled={startGameMutation.isPending}
                         >
-                          {startGameMutation.isPending ? "Starting..." : "Start Game"}
+                          {startGameMutation.isPending ? "Starting..." : "Start New Game"}
                         </Button>
                       </div>
                     ) : (
@@ -804,61 +815,72 @@ const EnhancedGameContainer: React.FC = () => {
             {/* Mobile Layout */}
             {isMobile && (
               <div className="md:hidden flex flex-col gap-4">
-                {/* Top - Question History */}
-                <div className="bg-white rounded-2xl shadow-md">
-                  <div className="flex justify-between items-center p-4 border-b">
-                    <h2 className="font-poppins font-semibold text-lg">Question History</h2>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={toggleHistorySidebar}
-                      className="text-primary hover:text-primary/70 transition"
-                    >
-                      {gameState.isHistoryCollapsed ? <ChevronDown className="h-6 w-6" /> : <ChevronUp className="h-6 w-6" />}
-                    </Button>
-                  </div>
-                  {!gameState.isHistoryCollapsed && (
-                    <div className="overflow-x-auto custom-scrollbar p-4 flex space-x-3">
-                      {gameState.questions.map((question) => (
-                        <div key={question.id} className="flex-shrink-0 w-60 bg-gray-50 rounded-lg p-3 border border-gray-100">
-                          <div className="font-open-sans text-sm">
-                            <p className="font-semibold text-gray-800">Q{question.id}: {question.text}</p>
-                            <p className={`mt-1 font-medium ${question.answer.toLowerCase().startsWith('yes') ? "text-green-600" : "text-red-600"}`}>
-                              {question.answer}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                      {gameState.questions.length === 0 && (
-                        <div className="flex-shrink-0 w-60 bg-gray-50 rounded-lg p-3 border border-gray-100 flex items-center justify-center">
-                          <p className="text-gray-400">No questions yet</p>
-                        </div>
-                      )}
+                {/* Top - Question History - Only show during active game */}
+                {gameState.isGameActive && (
+                  <div className="bg-white rounded-2xl shadow-md">
+                    <div className="flex justify-between items-center p-4 border-b">
+                      <h2 className="font-poppins font-semibold text-lg">Question History</h2>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={toggleHistorySidebar}
+                        className="text-primary hover:text-primary/70 transition"
+                      >
+                        {gameState.isHistoryCollapsed ? <ChevronDown className="h-6 w-6" /> : <ChevronUp className="h-6 w-6" />}
+                      </Button>
                     </div>
-                  )}
-                </div>
+                    {!gameState.isHistoryCollapsed && (
+                      <div className="overflow-x-auto custom-scrollbar p-4 flex space-x-3">
+                        {gameState.questions.map((question) => (
+                          <div key={question.id} className="flex-shrink-0 w-60 bg-gray-50 rounded-lg p-3 border border-gray-100">
+                            <div className="font-open-sans text-sm">
+                              <p className="font-semibold text-gray-800">Q{question.id}: {question.text}</p>
+                              <p className={`mt-1 font-medium ${question.answer.toLowerCase().startsWith('yes') ? "text-green-600" : "text-red-600"}`}>
+                                {question.answer}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                        {gameState.questions.length === 0 && (
+                          <div className="flex-shrink-0 w-60 bg-gray-50 rounded-lg p-3 border border-gray-100 flex items-center justify-center">
+                            <p className="text-gray-400">No questions yet</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Middle - Game Area */}
                 {!gameState.isGameActive ? (
-                  // Start Game Area Mobile
-                  <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col">
-                    <div className="text-center mb-6">
+                  // Start Game Area Mobile - Enhanced to match desktop
+                  <div className="bg-white rounded-2xl shadow-md p-7 flex flex-col">
+                    <div className="text-center mb-8">
+                      <div className="mb-6 flex justify-center">
+                        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                          <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">
+                              20
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <h2 className="text-3xl font-poppins font-bold mb-4 text-center text-primary">
                         Welcome to 20 Questions!
                       </h2>
                       <p className="text-base text-gray-700 mb-2 text-center">
                         I'll think of something, and you'll try to guess it by asking yes/no questions.
                       </p>
-                      <p className="text-base text-gray-700 mb-4 text-center">
+                      <p className="text-base text-gray-700 mb-6 text-center">
                         You have 20 questions to figure it out!
                       </p>
                     </div>
                     <Button
                       onClick={handleStartNewGame}
-                      className="w-full bg-primary hover:bg-primary/90 text-white font-poppins font-medium py-3 rounded-lg shadow-md transition duration-300"
+                      className="w-full bg-primary hover:bg-primary/90 text-white font-poppins font-semibold py-4 rounded-xl shadow-lg transition duration-300 text-base"
                       disabled={startGameMutation.isPending}
                     >
-                      {startGameMutation.isPending ? "Starting..." : "Start Game"}
+                      {startGameMutation.isPending ? "Starting..." : "Start New Game"}
                     </Button>
                   </div>
                 ) : (
