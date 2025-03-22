@@ -350,11 +350,23 @@ export async function makeGuess(previousQuestions: { question: string, answer: s
 
 export async function checkFinalGuess(word: string, guess: string, previousQuestions: { question: string, answer: string }[] = []): Promise<{ correct: boolean, feedback: string }> {
   try {
-    // Simple word match check
-    const normalizedWord = word.toLowerCase().trim();
-    const normalizedGuess = guess.toLowerCase().trim();
+    // Enhanced word match checking with normalization
+    const normalizeText = (text: string): string => {
+      return text
+        .toLowerCase()                  // Convert to lowercase
+        .trim()                         // Remove leading/trailing whitespace
+        .replace(/[^\w\s]/g, '')       // Remove special characters
+        .replace(/\s+/g, ' ')          // Normalize whitespace
+        .trim();                        // Trim again after whitespace normalization
+    };
     
-    // Direct match
+    const normalizedWord = normalizeText(word);
+    const normalizedGuess = normalizeText(guess);
+    
+    // Log for debugging
+    console.log(`Comparing normalized word: "${normalizedWord}" with guess: "${normalizedGuess}"`);
+    
+    // Direct match with normalized strings
     if (normalizedGuess === normalizedWord) {
       return { 
         correct: true, 
@@ -400,8 +412,23 @@ export async function checkFinalGuess(word: string, guess: string, previousQuest
     };
   } catch (error) {
     console.error("Error in checkFinalGuess:", error);
-    // Fallback to simple exact match in case the API fails
-    const isCorrect = guess.toLowerCase().trim() === word.toLowerCase().trim();
+    
+    // Fallback to normalized text matching in case the API fails
+    const normalizeText = (text: string): string => {
+      return text
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    };
+    
+    const normalizedWord = normalizeText(word);
+    const normalizedGuess = normalizeText(guess);
+    
+    console.log(`[Fallback] Comparing normalized word: "${normalizedWord}" with guess: "${normalizedGuess}"`);
+    
+    const isCorrect = normalizedGuess === normalizedWord;
     return { 
       correct: isCorrect, 
       feedback: isCorrect 

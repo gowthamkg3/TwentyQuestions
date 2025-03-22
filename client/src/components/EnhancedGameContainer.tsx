@@ -108,6 +108,7 @@ const EnhancedGameContainer: React.FC = () => {
   const [finalGuessMode, setFinalGuessMode] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [currentSettings, setCurrentSettings] = useState<GameSettings>(defaultSettings);
+  const [currentQuestion, setCurrentQuestion] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState<"stats" | "settings" | null>(null);
 
   // Latest question reference

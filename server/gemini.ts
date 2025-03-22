@@ -233,7 +233,23 @@ export async function checkFinalGuessGemini(word: string, guess: string, previou
     .map((q, i) => `Q${i + 1}: ${q.question}\nA${i + 1}: ${q.answer}`)
     .join('\n');
 
-  const isCorrect = word.toLowerCase().trim() === guess.toLowerCase().trim();
+  // Enhanced word match checking with normalization
+  const normalizeText = (text: string): string => {
+    return text
+      .toLowerCase()                  // Convert to lowercase
+      .trim()                         // Remove leading/trailing whitespace
+      .replace(/[^\w\s]/g, '')       // Remove special characters
+      .replace(/\s+/g, ' ')          // Normalize whitespace
+      .trim();                        // Trim again after whitespace normalization
+  };
+  
+  const normalizedWord = normalizeText(word);
+  const normalizedGuess = normalizeText(guess);
+  
+  // Log for debugging
+  console.log(`[Gemini] Comparing normalized word: "${normalizedWord}" with guess: "${normalizedGuess}"`);
+  
+  const isCorrect = normalizedWord === normalizedGuess;
 
   const prompt = `
     You are evaluating a guess in a game of 20 Questions.
