@@ -110,6 +110,7 @@ const EnhancedGameContainer: React.FC = () => {
   const [currentSettings, setCurrentSettings] = useState<GameSettings>(defaultSettings);
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState<"stats" | "settings" | null>(null);
+  const [gameModeModalOpen, setGameModeModalOpen] = useState(false);
 
   // Latest question reference
   const latestQuestion = gameState.questions.length > 0
@@ -525,7 +526,7 @@ const EnhancedGameContainer: React.FC = () => {
             <Button
               variant="default"
               className="bg-primary hover:bg-primary/90"
-              onClick={handleStartNewGame}
+              onClick={() => setGameModeModalOpen(true)}
               disabled={startGameMutation.isPending}
             >
               New Game
