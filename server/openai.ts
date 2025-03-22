@@ -116,16 +116,27 @@ export async function answerQuestion(word: string, question: string, previousQue
     ).join("\n\n");
     
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
           content: 
-            `You are playing the 'Twenty Questions' game. You are thinking of the word "${word}". 
-            Answer the player's yes/no questions truthfully, but keep your answers concise.
-            Your answers should be brief but helpful, starting with 'Yes' or 'No' followed by a short 
-            explanation if needed. Remember, this is a guessing game, so don't give away the answer directly.
-            If the question is not a yes/no question, politely ask them to rephrase it as a yes/no question.`
+            `You are playing the 'Twenty Questions' game. You are thinking of the word "${word}".
+            EXTREMELY IMPORTANT: Your answers must be VERY SHORT - no more than 10 words total.
+            
+            Rules:
+            1. Start every answer with either "Yes" or "No" only
+            2. Add at most 1-5 additional words if absolutely necessary
+            3. NEVER add explanations, justifications, or hints
+            4. NEVER use more than 10 words total
+            5. If the question isn't yes/no, just say "Please ask a yes/no question"
+            
+            Examples of good answers:
+            - "Yes"
+            - "No"
+            - "Yes, sometimes"
+            - "No, never"
+            - "Please ask a yes/no question"`
         },
         {
           role: "user",
@@ -134,8 +145,8 @@ export async function answerQuestion(word: string, question: string, previousQue
             `Question: ${question}`
         }
       ],
-      max_tokens: 100,
-      temperature: 0.5,
+      max_tokens: 30,
+      temperature: 0.3,
     });
 
     const answer = response.choices[0].message.content?.trim();
@@ -234,15 +245,20 @@ export async function simulateHumanAnswer(word: string, question: string, previo
     ).join("\n\n");
     
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
           content: 
             `You are playing the 'Twenty Questions' game. You are thinking of the word "${word}".
-            You will be asked yes/no questions, and you must answer truthfully and concisely.
-            Always begin your answer with either 'Yes' or 'No', followed by a brief explanation if necessary.
-            Never reveal the word directly. Keep your answers short, factual, and helpful.`
+            EXTREMELY IMPORTANT: Your answers must be VERY SHORT - no more than 10 words total.
+            
+            Rules:
+            1. Start every answer with either "Yes" or "No" only
+            2. Add at most 1-5 additional words if absolutely necessary
+            3. NEVER add explanations, justifications, or hints
+            4. NEVER use more than 10 words total
+            5. If the question isn't yes/no, just say "Please ask a yes/no question"`
         },
         {
           role: "user",
@@ -251,8 +267,8 @@ export async function simulateHumanAnswer(word: string, question: string, previo
             `Question: ${question}`
         }
       ],
-      max_tokens: 80,
-      temperature: 0.5,
+      max_tokens: 30,
+      temperature: 0.3,
     });
 
     const answer = response.choices[0].message.content?.trim();

@@ -103,16 +103,27 @@ export async function answerQuestionGemini(word: string, question: string, previ
 
   const prompt = `
     You are playing a game of 20 Questions. You are thinking of the word "${word}".
-    A player is asking you yes/no questions to guess what you're thinking of.
+    
+    EXTREMELY IMPORTANT: Your answers must be VERY SHORT - no more than 10 words total.
+    
+    Rules:
+    1. Start every answer with either "Yes" or "No" only
+    2. Add at most 1-5 additional words if absolutely necessary
+    3. NEVER add explanations, justifications, or hints
+    4. NEVER use more than 10 words total
+    5. If the question isn't yes/no, just say "Please ask a yes/no question"
     
     Previous questions and answers:
     ${previousQuestionsText}
     
     Current question: "${question}"
     
-    Please provide a concise yes or no answer. You may qualify your answer briefly if needed, 
-    but keep it short and helpful. Don't give away the answer directly.
-    Your response should start with "Yes" or "No".
+    Examples of good answers:
+    - "Yes"
+    - "No"
+    - "Yes, sometimes"
+    - "No, never"
+    - "Please ask a yes/no question"
   `;
 
   try {
@@ -121,7 +132,7 @@ export async function answerQuestionGemini(word: string, question: string, previ
     return response.text().trim();
   } catch (error) {
     console.error("Error answering question with Gemini:", error);
-    return "I'm not sure about that. Please try asking a different question.";
+    return "No";
   }
 }
 
@@ -159,16 +170,27 @@ export async function simulateHumanAnswerGemini(word: string, question: string, 
 
   const prompt = `
     You are simulating a human player in a game of 20 Questions. You are thinking of the word "${word}".
-    The AI is asking you yes/no questions to try to guess the word.
+    
+    EXTREMELY IMPORTANT: Your answers must be VERY SHORT - no more than 10 words total.
+    
+    Rules:
+    1. Start every answer with either "Yes" or "No" only
+    2. Add at most 1-5 additional words if absolutely necessary
+    3. NEVER add explanations, justifications, or hints
+    4. NEVER use more than 10 words total
+    5. If the question isn't yes/no, just say "Please ask a yes/no question"
     
     Previous questions and answers:
     ${previousQuestionsText}
     
     Current question from the AI: "${question}"
     
-    Provide a concise yes or no answer as a human would. You may qualify your answer briefly if needed,
-    but keep it natural and conversational. Don't give away the answer directly.
-    Your response should start with "Yes" or "No".
+    Examples of good answers:
+    - "Yes"
+    - "No"
+    - "Yes, sometimes"
+    - "No, never"
+    - "Please ask a yes/no question"
   `;
 
   try {
@@ -177,7 +199,7 @@ export async function simulateHumanAnswerGemini(word: string, question: string, 
     return response.text().trim();
   } catch (error) {
     console.error("Error simulating human answer with Gemini:", error);
-    return "I'm not sure about that. Try asking another question.";
+    return "No";
   }
 }
 
