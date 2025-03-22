@@ -32,7 +32,9 @@ import {
   Pause,
   Play,
   StopCircle, 
-  RotateCcw
+  RotateCcw,
+  User,
+  Cpu
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -49,6 +51,13 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const EnhancedGameContainer: React.FC = () => {
   const isMobile = useIsMobile();
@@ -975,6 +984,59 @@ const EnhancedGameContainer: React.FC = () => {
         isLLMvsLLM={gameState.gameMode === "v2"}
         llmConfig={gameState.llmConfig}
       />
+      
+      {/* Game Mode Selection Modal */}
+      <Dialog open={gameModeModalOpen} onOpenChange={setGameModeModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl font-bold mb-2">Choose Game Mode</DialogTitle>
+            <DialogDescription className="text-center">
+              Select a mode to start your 20 Questions game
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-4 my-4">
+            <div 
+              className="border border-gray-200 hover:border-primary rounded-lg p-6 cursor-pointer transition duration-200 flex flex-col items-center hover:bg-gray-50"
+              onClick={() => {
+                setCurrentSettings({
+                  ...currentSettings,
+                  gameMode: "v1"
+                });
+                setGameModeModalOpen(false);
+                startGameMutation.mutate();
+              }}
+            >
+              <div className="h-16 w-16 rounded-full bg-purple-100 flex items-center justify-center mb-4">
+                <User className="h-8 w-8 text-purple-600" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Human vs AI</h3>
+              <p className="text-center text-sm text-gray-600">
+                You ask the questions and try to guess what the AI is thinking of
+              </p>
+            </div>
+            
+            <div 
+              className="border border-gray-200 hover:border-primary rounded-lg p-6 cursor-pointer transition duration-200 flex flex-col items-center hover:bg-gray-50"
+              onClick={() => {
+                setCurrentSettings({
+                  ...currentSettings,
+                  gameMode: "v2"
+                });
+                setGameModeModalOpen(false);
+                startGameMutation.mutate();
+              }}
+            >
+              <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                <Cpu className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">AI vs AI</h3>
+              <p className="text-center text-sm text-gray-600">
+                Watch as one AI tries to guess what the other AI is thinking of
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
