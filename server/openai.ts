@@ -36,6 +36,9 @@ export async function selectRandomWord(options: WordSelectionOptions = {}): Prom
             For easy difficulty, choose very common items that most people encounter daily.
             For medium difficulty, choose moderately common items that most people would recognize.
             For hard difficulty, choose more obscure or specific items that are challenging but still possible to guess.
+            
+            IMPORTANT: Never reuse words from previous sessions. Be creative and select unusual or unexpected items.
+            
             Also provide 3 hints of increasing helpfulness that could be revealed during the game.
             Return your response as a JSON object with the following structure:
             {
@@ -47,12 +50,12 @@ export async function selectRandomWord(options: WordSelectionOptions = {}): Prom
         },
         {
           role: "user",
-          content: `Select a random ${category} with ${difficulty} difficulty that would be appropriate for a game of Twenty Questions.`
+          content: `Select a random ${category} with ${difficulty} difficulty that would be appropriate for a game of Twenty Questions. Choose something surprising and unique that hasn't been commonly used before.`
         }
       ],
       response_format: { type: "json_object" },
       max_tokens: 250,
-      temperature: 0.7,
+      temperature: 0.9, // Increased temperature for more randomness
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
