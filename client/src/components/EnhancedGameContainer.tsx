@@ -1067,6 +1067,7 @@ const EnhancedGameContainer: React.FC = () => {
         {/* V2 Mode: LLM vs LLM */}
         {gameState.gameMode === "v2" && (
           <LLMvsLLMMode 
+            key={`llm-vs-llm-${gameState.selectedWord || "new-game"}-${Date.now()}`} // Add a key to force re-mounting on new game
             onGameEnd={handleLLMGameEnd}
             onHintUsed={handleHintUsed}
             hintsUsed={gameState.hintsUsed}

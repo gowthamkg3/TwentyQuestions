@@ -41,6 +41,22 @@ export function LLMvsLLMMode({
   const [autoPlaySpeed, setAutoPlaySpeed] = useState(3000); // 3 seconds between questions
   const { toast } = useToast();
 
+  // Reset the component state when mounted
+  useEffect(() => {
+    // Clear all state when the component mounts
+    setQuestions([]);
+    setIsGameActive(true);
+    setIsLoading(false);
+    setQuestionCount(0);
+    setAutoPlay(true);
+    setAutoPlaySpeed(3000);
+    
+    // Return cleanup function
+    return () => {
+      // Any cleanup needed when component unmounts
+    };
+  }, []);  // Empty dependency array means this only runs on mount
+
   // Handles the automated question-answer flow
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -64,54 +80,73 @@ export function LLMvsLLMMode({
     try {
       // First, check if the LLM is ready to make a guess
       if (questions.length >= 4 && questions.length % 2 === 0) {
-        // Make an assessment call to see if LLM is ready to guess
-        const assessmentResponse = await apiRequest<{ readyToGuess: boolean }>('/api/game/assess-readiness', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            llmConfig,
-            questionCount: questions.length
-          })
-        }).catch(() => ({ readyToGuess: false }));
-        
-        // If the LLM is confident it knows the answer, skip to the final guess
-        if (assessmentResponse.readyToGuess) {
-          makeLLMFinalGuess();
-          return;
+        try {
+          // Make an assessment call to see if LLM is ready to guess
+          const assessmentResponse = await apiRequest<{ readyToGuess: boolean }>('/api/game/assess-readiness', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              llmConfig,
+              questionCount: questions.length
+            })
+          });
+          
+          // If the LLM is confident it knows the answer, skip to the final guess
+          if (assessmentResponse.readyToGuess) {
+            makeLLMFinalGuess();
+            return;
+          }
+        } catch (error) {
+          console.error("Error in assessment:", error);
+          // Continue with next question if assessment fails
         }
       }
       
-      // If not ready to guess, get a new question from the LLM
-      const questionResponse = await apiRequest<{ question: string, questionCount: number }>('/api/game/llm-question', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ llmConfig })
-      });
-      
-      // Then, get the answer to that question using the configured answerer
-      const answerResponse = await apiRequest<{ question: string, answer: string, questionCount: number }>('/api/game/answer-llm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          question: questionResponse.question,
-          llmConfig 
-        })
-      });
-      
-      // Update the state with the new question and answer
-      const newQuestion: Question = {
-        id: questions.length + 1,
-        text: answerResponse.question,
-        answer: answerResponse.answer,
-        isLLMQuestion: true
-      };
-      
-      setQuestions(prev => [...prev, newQuestion]);
-      setQuestionCount(answerResponse.questionCount);
-      
-      // If we've reached 20 questions, let the LLM make a final guess
-      if (answerResponse.questionCount >= 20) {
-        makeLLMFinalGuess();
+      try {
+        // If not ready to guess, get a new question from the LLM
+        const questionResponse = await apiRequest<{ question: string, questionCount: number }>('/api/game/llm-question', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ llmConfig })
+        });
+        
+        // Then, get the answer to that question using the configured answerer
+        const answerResponse = await apiRequest<{ question: string, answer: string, questionCount: number }>('/api/game/answer-llm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            question: questionResponse.question,
+            llmConfig 
+          })
+        });
+        
+        // Update the state with the new question and answer
+        const newQuestion: Question = {
+          id: questions.length + 1,
+          text: answerResponse.question,
+          answer: answerResponse.answer,
+          isLLMQuestion: true
+        };
+        
+        setQuestions(prev => [...prev, newQuestion]);
+        setQuestionCount(answerResponse.questionCount);
+        
+        // If we've reached 20 questions, let the LLM make a final guess
+        if (answerResponse.questionCount >= 20) {
+          makeLLMFinalGuess();
+        }
+      } catch (apiError: any) {
+        // If we get "No active game session" error, stop the auto-play
+        if (apiError?.message?.includes("No active game session")) {
+          setAutoPlay(false);
+          setIsGameActive(false);
+          toast({
+            title: "Game Ended",
+            description: "The game session has ended or was reset. Please start a new game.",
+          });
+        } else {
+          throw apiError; // Re-throw for the outer catch block to handle
+        }
       }
     } catch (error) {
       console.error("Error in LLM conversation:", error);
@@ -153,13 +188,24 @@ export function LLMvsLLMMode({
       onGameEnd(enhancedResponse);
       
       // Removed toast notification - feedback now shown in dialog
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error making final guess:", error);
-      toast({
-        title: "Error",
-        description: "There was an error processing the final guess. Please try again.",
-        variant: "destructive"
-      });
+      
+      // If we get "No active game session" error, handle it gracefully
+      if (error?.message?.includes("No active game session")) {
+        setAutoPlay(false);
+        setIsGameActive(false);
+        toast({
+          title: "Game Ended",
+          description: "The game session has ended or was reset. Please start a new game.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "There was an error processing the final guess. Please try again.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsLoading(false);
     }
