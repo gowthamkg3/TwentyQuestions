@@ -30,7 +30,8 @@ export function LLMvsLLMMode({
   onPauseToggle,
   difficulty,
   category,
-  llmConfig
+  llmConfig,
+  showHints = true // Default to showing hints
 }: LLMvsLLMModeProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isGameActive, setIsGameActive] = useState(true);
@@ -282,11 +283,13 @@ export function LLMvsLLMMode({
       </Card>
       
       {/* Hints System */}
-      <HintSystem
-        gameActive={isGameActive && !isPaused}
-        hintsUsed={hintsUsed}
-        onHintReceived={onHintUsed}
-      />
+      {showHints && (
+        <HintSystem
+          gameActive={isGameActive && !isPaused}
+          hintsUsed={hintsUsed}
+          onHintReceived={onHintUsed}
+        />
+      )}
       
       {/* Questions Area */}
       <div className="space-y-3">

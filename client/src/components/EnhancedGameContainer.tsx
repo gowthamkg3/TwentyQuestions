@@ -958,6 +958,7 @@ const EnhancedGameContainer: React.FC = () => {
             difficulty={gameState.difficulty}
             category={gameState.selectedCategory || "unknown"}
             llmConfig={gameState.llmConfig}
+            showHints={currentSettings.showHints}
           />
         )}
       </main>

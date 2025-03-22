@@ -25,6 +25,11 @@ export async function selectRandomWord(options: WordSelectionOptions = {}): Prom
     const category = options.category || categories[Math.floor(Math.random() * categories.length)];
     const difficulty = options.difficulty || "medium";
     
+    // Keep a history of recently selected words to avoid repetition
+    // This is normally managed with a database, but for this in-memory example,
+    // we'll use the cache mechanism in the request to encourage variety
+    const randomSeed = Math.floor(Math.random() * 100000).toString();
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -33,6 +38,7 @@ export async function selectRandomWord(options: WordSelectionOptions = {}): Prom
           content: 
             `You are a word selection assistant for a 'Twenty Questions' game. 
             Select a ${difficulty} difficulty ${category} that people can guess through yes/no questions.
+            IMPORTANT: Each time you're asked, you must select a DIFFERENT word than you provided before.
             For easy difficulty, choose very common items that most people encounter daily.
             For medium difficulty, choose moderately common items that most people would recognize.
             For hard difficulty, choose more obscure or specific items that are challenging but still possible to guess.
@@ -47,12 +53,13 @@ export async function selectRandomWord(options: WordSelectionOptions = {}): Prom
         },
         {
           role: "user",
-          content: `Select a random ${category} with ${difficulty} difficulty that would be appropriate for a game of Twenty Questions.`
+          content: `Select a random ${category} with ${difficulty} difficulty that would be appropriate for a game of Twenty Questions. 
+          Be creative and unpredictable with your selection. Random seed: ${randomSeed}`
         }
       ],
       response_format: { type: "json_object" },
       max_tokens: 250,
-      temperature: 0.7,
+      temperature: 1.0, // Increase temperature for more randomness
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
